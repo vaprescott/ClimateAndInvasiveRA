@@ -1,0 +1,12 @@
+library("dismo", lib.loc="~/R/library")
+library("gbm", lib.loc="~/R/library")
+library("maps", lib.loc="~/R/library")
+library("mapdata", lib.loc="~/R/library")
+library("maptools", lib.loc="~/R/library")
+library("rgdal", lib.loc="~/R/library")
+#trying to bring grid rasters in R so that I don't have to use asc files, which take forever to run
+climate <- getData('worldclim', var='bio', res=2.5)
+bio_1=file("E:/postdoc/WorldClim/Current/bio_30s_esri/bio/bio_1.grd")
+bio_2=("E:/postdoc/WorldClim/Current/bio_30s_esri/bio/bio_2.grd")  
+bio_3=raster("E:/postdoc/WorldClim/Current/bio_30s_esri/bio/bio_3.grd")
+class(bio_2)
