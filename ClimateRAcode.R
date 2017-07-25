@@ -10,3 +10,4 @@ bio_1=file("E:/postdoc/WorldClim/Current/bio_30s_esri/bio/bio_1.grd")
 bio_2=("E:/postdoc/WorldClim/Current/bio_30s_esri/bio/bio_2.grd")  
 bio_3=raster("E:/postdoc/WorldClim/Current/bio_30s_esri/bio/bio_3.grd")
 class(bio_2)
+test
