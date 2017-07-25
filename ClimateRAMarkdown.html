@@ -123,10 +123,6 @@ $(document).ready(function () {
 </div>
 
 
-<div id="r-markdown" class="section level2">
-<h2>R Markdown</h2>
-<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
 <pre class="r"><code>#You will need the following packages:
 library(&quot;dismo&quot;, lib.loc=&quot;~/R/library&quot;)</code></pre>
 <pre><code>## Loading required package: raster</code></pre>
@@ -152,7 +148,67 @@ library(&quot;maptools&quot;, lib.loc=&quot;~/R/library&quot;)</code></pre>
 ##  Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
 ##  Path to PROJ.4 shared files: (autodetected)
 ##  Linking to sp version: 1.2-5</code></pre>
-</div>
+<pre class="r"><code>#current.list=list.files(path=&quot;E:/postdoc/WorldClim/Current/tif_files&quot;, 
+#                        pattern=&quot;tif$&quot;, full.names=TRUE )
+#current=stack(current.list)</code></pre>
+<pre class="r"><code>#bring in coordinates of species of interest, and switch columns so that latitude is first
+#a.torren.coords &lt;- read.csv(&quot;C:/Users/vprescott/Desktop/RAMP2/Species/Austropotamobius_torrentium/Austropotamobius torrentium GBIF Locations.csv&quot;)
+#a.torren.coords&lt;-a.torren.coords[c(&quot;Latitude&quot;,&quot;Longitude&quot;)]</code></pre>
+<pre class="r"><code>#create presence training and test data
+#set.seed(0)
+#group=kfold(a.torren.coords, 5)
+#pres_train=a.torren.coords[group!=1,]
+#pres_test=a.torren.coords[group==1,]</code></pre>
+<pre class="r"><code>#create background training and test data (in lieu of absence data)
+#set.seed(10)
+#ext=extent(6,16,46,50)
+#backg=randomPoints(current, n=500,ext=ext, extf=1.25)
+#colnames(backg)=c('Longitude','Latitude')
+#group=kfold(backg,5)
+#backg_train=backg[group!=1,]
+#backg_test=backg[group==1,]</code></pre>
+<pre class="r"><code>#create a plot, showing just first layer and plot to check data
+#r=raster(current,1)
+#plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
+#points(backg_train, pch='-', cex=0.5, col='yellow')
+#points(backg_test, pch='+', cex=0.5, col='black')
+#points(pres_train, pch='+', col='green')
+#points(pres_test, pch='+', col='blue')</code></pre>
+<pre class="r"><code>#create data frame with presence and background training coordinates
+#extract environmental data at those coordinates
+#backg_train_current&lt;-extract(current, backg_train)
+#pres_train_current&lt;-extract(current, pres_train)
+#pres_backg_train&lt;-c(rep(1,nrow(pres_train_current)), 
+ #                   rep(0, nrow(backg_train_current)))
+#train&lt;-rbind(pres_train_current, backg_train_current)
+#envtrain&lt;-data.frame(cbind(pa=pres_backg_train, train))</code></pre>
+<pre class="r"><code>#do the same for test data
+#backg_test_current&lt;-extract(current, backg_test)
+#pres_test_current&lt;-extract(current, pres_test)
+#pres_backg_test&lt;-c(rep(1,nrow(pres_test_current)), 
+#                   rep(0, nrow(backg_test_current)))
+#test&lt;-rbind(pres_test_current, backg_test_current)
+#envtest&lt;-data.frame(cbind(pa=pres_backg_test, test))</code></pre>
+<pre class="r"><code>#run a model, lower the learning rate if you get the algorithm warning
+#a.torren.tc5.lr001.train&lt;-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+ #                                 family=&quot;bernoulli&quot;, tree.complexity = 5,
+  #                                learning.rate=0.001, bag.fraction=0.5)</code></pre>
+<pre class="r"><code>#determine how well the test data does with this model
+#pr=predict(a.torren.tc5.lr001.train,envtest, 
+#           n.trees=a.torren.tc5.lr001.train$gbm.call$best.trees,
+#           type=&quot;response&quot;)
+#calc.deviance(obs=envtest$pa, pred=pr, calc.mean = TRUE)
+#d&lt;-cbind(envtest$pa, pr)
+#pres&lt;-d[d[,1]==1,2]
+#abs&lt;-d[d[,1]==0,2]
+#e&lt;-evaluate(p=pres, a=abs)
+#e</code></pre>
+<pre class="r"><code>#run the model across the world (compare climate at gps points to the entire world)
+#will eventually have to crop this to the great lakes region
+#this takes quite a while to run
+#p&lt;-predict(current, a.torren.tc5.lr001.train,
+#          n.trees=a.torren.tc5.lr001.train$gbm.call$best.trees,
+#          type=&quot;response&quot;)</code></pre>
 
 
 
