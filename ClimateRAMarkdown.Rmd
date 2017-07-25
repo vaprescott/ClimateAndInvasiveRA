@@ -21,14 +21,14 @@ library("rgdal", lib.loc="~/R/library")
 
 ```{r}
 #upload worldclim raster files for the current climate
-current.list=list.files(path="E:/postdoc/WorldClim/Current/tif_files", 
+current.list=list.files(path="path to files", 
                         pattern="tif$", full.names=TRUE )
 current=stack(current.list)
 ```
 
 ```{r}
 #bring in coordinates of species of interest, and switch columns so that latitude is first
-a.torren.coords <- read.csv("C:/Users/vprescott/Desktop/RAMP2/Species/Austropotamobius_torrentium/Austropotamobius torrentium GBIF Locations.csv")
+a.torren.coords <- read.csv("path to files")
 a.torren.coords<-a.torren.coords[c("Latitude","Longitude")]
 ```
 
