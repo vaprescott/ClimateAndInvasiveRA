@@ -55,4 +55,3 @@ envtest<-data.frame(cbind(pa=pres_backg_test, test))
 
 #run a model, lower the learning rate if you get the algorithm warning
 
-
