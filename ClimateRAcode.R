@@ -54,5 +54,25 @@ test<-rbind(pres_test_current, backg_test_current)
 envtest<-data.frame(cbind(pa=pres_backg_test, test))
 
 #run a model, lower the learning rate if you get the algorithm warning
+a.torren.tc5.lr001.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+                                  family="bernoulli", tree.complexity = 5,
+                                  learning.rate=0.001, bag.fraction=0.5)
 
+#determine how well the test data does with this model
+pr=predict(a.torren.tc5.lr01.train,envtest, 
+           n.trees=a.torren.tc5.lr01$gbm.call$best.trees,
+           type="response")
+calc.deviance(obs=envtest$pa, pred=pr, calc.mean = TRUE)
+d<-cbind(envtest$pa, pr)
+pres<-d[d[,1]==1,2]
+abs<-d[d[,1]==0,2]
+e<-evaluate(p=pres, a=abs)
+e
+
+#run the model across the world (compare climate at gps points to the entire world)
+#will eventually have to crop this to the great lakes region
+
+p<-predict(current, a.torren.tc5.lr01.train,
+           n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+           type="response")
 
