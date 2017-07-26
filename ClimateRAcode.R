@@ -76,4 +76,7 @@ p<-predict(current, a.torren.tc5.lr01.train,
            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
            type="response")
 
-
+#plot map
+#this is where I will try to mask with a map of great lakes/NA
+p=mask(p, raster(current,1))
+plot(p, main="A. torren-BRT prediction")
