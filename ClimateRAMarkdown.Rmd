@@ -112,7 +112,36 @@ p<-predict(current, a.torren.tc5.lr001.train,
 
 ```{r eval=FALSE}
 #plot map
-#this is where I will try to mask with a map of great lakes/NA
-p=mask(p, raster(current,1))
+predict_current_mask=mask(predict_current, raster(current,1))
 plot(p, main="A. torren-BRT prediction")
 ```
+
+```{r eval=FALSE}
+#to crop to just North America
+cropped<-raster("E:/postdoc/Mod_WorldClim/ModLayers_2050_45/mod_rasters/mod_bio_1.tif")
+current_NA<-crop(predict_current_mask, cropped)
+current_NA<-mask(current_NA,cropped)
+plot(current_NA,
+     main="ADD TITLE")
+```
+
+```{r eval=FALSE}
+#use future projection RCP 45 2050
+rcp45.50.list=list.files(path="E:/postdoc/WorldClim/2050/GF-RCP45/gf45bi50/", 
+                         pattern="tif$", full.names=TRUE )
+rcp45.50=stack(rcp45.50.list)
+```
+
+```{r eval=FALSE}
+#Once again, the next step takes hours to run
+predict_RCP45_50<-predict(rcp45.50, a.torren.tc5.lr01.train,
+            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+            type="response")
+predict_RCP45_50_cropped<-crop(predict_RCP45_50,cropped)
+predict_RCP45_50_mask<-mask(predict_RCP45_50_cropped,cropped)
+plot(predict_RCP45_50_mask, 
+     xlim=c(-180,-20), ylim=c(10,90),
+     main="ADD TITLE")
+```
+![A.torrentium.45.2050.png](/home/vaprescott/ClimateAndInvasiveRA/A.torrentium.45.2050.png)
+
