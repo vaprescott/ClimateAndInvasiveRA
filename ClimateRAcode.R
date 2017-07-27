@@ -59,24 +59,54 @@ a.torren.tc5.lr001.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   learning.rate=0.001, bag.fraction=0.5)
 
 #determine how well the test data does with this model
-pr=predict(a.torren.tc5.lr01.train,envtest, 
+predict_test=predict(a.torren.tc5.lr01.train,envtest, 
            n.trees=a.torren.tc5.lr01$gbm.call$best.trees,
            type="response")
-calc.deviance(obs=envtest$pa, pred=pr, calc.mean = TRUE)
-d<-cbind(envtest$pa, pr)
+calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
+d<-cbind(envtest$pa, predict_test)
 pres<-d[d[,1]==1,2]
 abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
+threshold(e)
+sensitivity<-sum(pres>=0.7156226)/length(pres) 
+  #use the desired threshold value from previous step
+specificity<-sum(abs<0.7156226)/length(abs)
+
+
 
 #run the model across the world (compare climate at gps points to the entire world)
-#will eventually have to crop this to the great lakes region
-
-p<-predict(current, a.torren.tc5.lr01.train,
+#Takes about 5 hours to run
+predict_current<-predict(current, a.torren.tc5.lr01.train,
            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
            type="response")
 
 #plot map
-#this is where I will try to mask with a map of great lakes/NA
-p=mask(p, raster(current,1))
+predict_current_mask=mask(predict_current, raster(current,1))
 plot(p, main="A. torren-BRT prediction")
+
+#to crop to just North America
+cropped<-raster("E:/postdoc/Mod_WorldClim/ModLayers_2050_45/mod_rasters/mod_bio_1.tif")
+current_NA<-crop(predict_current_mask, cropped)
+current_NA<-mask(current_NA,cropped)
+plot(current_NA,
+     main="ADD TITLE")
+
+#use future projection RCP 45 2050
+rcp45.50.list=list.files(path="E:/postdoc/WorldClim/2050/GF-RCP45/gf45bi50/", 
+                         pattern="tif$", full.names=TRUE )
+rcp45.50=stack(rcp45.50.list)
+#Once again, the next step takes hours to run
+predict_RCP45_50<-predict(rcp45.50, a.torren.tc5.lr01.train,
+            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+            type="response")
+predict_RCP45_50_cropped<-crop(predict_RCP45_50,cropped)
+predict_RCP45_50_mask<-mask(predict_RCP45_50_cropped,cropped)
+plot(predict_RCP45_50_mask, 
+     xlim=c(-180,-20), ylim=c(10,90),
+     main="ADD TITLE")
+           
+
+
+
+
