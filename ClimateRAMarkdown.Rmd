@@ -144,4 +144,14 @@ plot(predict_RCP45_50_mask,
      main="ADD TITLE")
 ```
 ![A.torrentium.45.2050.png](/home/vaprescott/ClimateAndInvasiveRA/A.torrentium.45.2050.png)
+```{r eval=FALSE}
+colors<-c("blue","lightblue"," green", "yellow", "red")
+text(cex.main=1.25,add=TURE)
+test<-stack(r3,rcp45.70_mask)
+animation<-animate(test, pause=1, n=100, 
+                   xlim=c(-180,-20), 
+                   ylim=c(10,90), 
+                   col=colors,
+                   maxpixels=50000)
+```
 

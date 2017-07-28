@@ -106,7 +106,27 @@ plot(predict_RCP45_50_mask,
      xlim=c(-180,-20), ylim=c(10,90),
      main="ADD TITLE")
            
+#do the same for the next climate horizon
+rcp45.70.list=list.files(path="E:/postdoc/WorldClim/2070/GF-RCP45/gf45bi70/", 
+                         pattern="tif$", full.names=TRUE )
+rcp45.70=stack(rcp45.70.list)
+rcp45.7.predict<-predict(rcp45.70, a.torren.tc5.lr01.train,
+                         n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+                         type="response")
+rcp45.70_crop=crop(rcp45.7.predict,cropped)
+rcp45.70_mask<-mask(rcp45.70_crop,cropped)
+plot(rcp45.70_mask, xlim=c(-170,-20), ylim=c(10,90),
+     main="A. torrentium RCP 4.5 2070", cex.main=1.25, 
+     breaks=breakpoints,col=colors)
+map(database="state", col="black",fill=FALSE, add=TRUE)
+text(cex.main=1.25,add=TURE)
 
-
+#create animation of 2050 and 2070 
+test<-stack(r3,rcp45.70_mask)
+animation<-animate(test, pause=1, n=100, 
+                   xlim=c(-180,-20), 
+                   ylim=c(10,90), 
+                   col=colors,
+                   maxpixels=50000)
 
 
