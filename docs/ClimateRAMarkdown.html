@@ -184,7 +184,11 @@ d&lt;-cbind(envtest$pa, pr)
 pres&lt;-d[d[,1]==1,2]
 abs&lt;-d[d[,1]==0,2]
 e&lt;-evaluate(p=pres, a=abs)
-e</code></pre>
+e
+threshold(e)
+sensitivity<-sum(pres>=0.7156226)/length(pres) 
+  #use the desired threshold value from previous step
+specificity<-sum(abs<0.7156226)/length(abs)</code></pre>
 <pre class="r"><code>#run the model across the world (compare climate at gps points to the entire world)
 #will eventually have to crop this to the great lakes region
 #this takes quite a while to run
