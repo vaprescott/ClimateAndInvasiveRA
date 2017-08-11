@@ -99,6 +99,10 @@ pres<-d[d[,1]==1,2]
 abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
+threshold(e)
+sensitivity<-sum(pres>=0.7156226)/length(pres) 
+  #use the desired threshold value from previous step
+specificity<-sum(abs<0.7156226)/length(abs)
 ```
 
 ```{r eval=FALSE}
