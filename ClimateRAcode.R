@@ -4,6 +4,19 @@ library("maps", lib.loc="~/R/library")
 library("mapdata", lib.loc="~/R/library")
 library("maptools", lib.loc="~/R/library")
 library("rgdal", lib.loc="~/R/library")
+library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
+library("raster", lib.loc="~/R/win-library/3.4")
+
+#trying to bring in tiff files from postgre
+con<- dbConnect(PostgreSQL(), 
+                host='localhost', 
+                user='postgres',
+                password='ApplePeachPear', 
+                dbname='ClimateInvasiveRA')
+
+ras<- readGDAL(con)
+
+
 #bring in tiff files for climate data and put them into one rasterstack
 
 current.list=list.files(path="E:/postdoc/WorldClim/Current/tif_files", 
