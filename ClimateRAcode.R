@@ -1,30 +1,33 @@
 library("dismo", lib.loc="~/R/library")
-library("gbm", lib.loc="~/R/library")
-library("maps", lib.loc="~/R/library")
-library("mapdata", lib.loc="~/R/library")
-library("maptools", lib.loc="~/R/library")
-library("rgdal", lib.loc="~/R/library")
+library("gbm", lib.loc="~/R/win-library/3.4")
+library("maps", lib.loc="~/R/win-library/3.4")
+library("mapdata", lib.loc="~/R/win-library/3.4")
+library("maptools", lib.loc="~/R/win-library/3.4")
+library("rgdal", lib.loc="~/R/win-library/3.4")
 library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
 library("raster", lib.loc="~/R/win-library/3.4")
 
 #trying to bring in tiff files from postgre
-con<- dbConnect(PostgreSQL(), 
-                host='localhost', 
-                user='postgres',
-                password='ApplePeachPear', 
-                dbname='ClimateInvasiveRA')
+#con<- dbConnect(PostgreSQL(), 
+#                host='localhost', 
+#                user='postgres',
+#                password='ApplePeachPear', 
+#                dbname='ClimateInvasiveRA')
 
-ras<- readGDAL(con)
+#ras<- readGDAL(con)
 
 
 #bring in tiff files for climate data and put them into one rasterstack
 
-current.list=list.files(path="E:/postdoc/WorldClim/Current/tif_files", 
+current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tif_files", 
   pattern="tif$", full.names=TRUE )
 current=stack(current.list)
+gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/gl_tiff",
+          pattern="tif$", full.names=TRUE)
+gl.current=stack(gl.current.list)
 
 #bring in coordinates of species of interest, and switch columns so that latitude is first
-a.torren.coords <- read.csv("C:/Users/vprescott/Desktop/RAMP2/Species/Austropotamobius_torrentium/Austropotamobius torrentium GBIF Locations.csv")
+a.torren.coords <- read.csv("C:/Users/vprescott/Desktop/RAMP2/Full_coords/Pisidiu_henslowanum_full.csv")
 a.torren.coords<-a.torren.coords[c("Latitude","Longitude")]
 
 #create presence training and test data
@@ -35,7 +38,7 @@ pres_test=a.torren.coords[group==1,]
 
 #create background training and test data (in lieu of absence data)
 set.seed(10)
-ext=extent(6,16,46,50)
+ext=extent(-1.5,23.5,48.4,67.5)
 backg=randomPoints(current, n=500,ext=ext, extf=1.25)
 colnames(backg)=c('Longitude','Latitude')
 group=kfold(backg,5)
@@ -67,13 +70,16 @@ test<-rbind(pres_test_current, backg_test_current)
 envtest<-data.frame(cbind(pa=pres_backg_test, test))
 
 #run a model, lower the learning rate if you get the algorithm warning
-a.torren.tc5.lr001.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+a.torren.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
-                                  learning.rate=0.001, bag.fraction=0.5)
+                                  learning.rate=0.01, bag.fraction=0.5)
+
+#determine best number of trees
+a.torren.tc5.lr01.train$gbm.call$best.trees
 
 #determine how well the test data does with this model
 predict_test=predict(a.torren.tc5.lr01.train,envtest, 
-           n.trees=a.torren.tc5.lr01$gbm.call$best.trees,
+           n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
            type="response")
 calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
 d<-cbind(envtest$pa, predict_test)
@@ -82,21 +88,23 @@ abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
 threshold(e)
-sensitivity<-sum(pres>=0.7156226)/length(pres) 
+sensitivity<-sum(pres>=0.8950081)/length(pres) 
   #use the desired threshold value from previous step
-specificity<-sum(abs<0.7156226)/length(abs)
+specificity<-sum(abs<0.8950081)/length(abs)
+sensitivity
+specificity
 
-
-
-#run the model across the world (compare climate at gps points to the entire world)
+#run the model across the world (compare climate at gps points to the great lakes)
 #Takes about 5 hours to run
-predict_current<-predict(current, a.torren.tc5.lr01.train,
+predict_current<-predict(gl.current, a.torren.tc5.lr01.train,
            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
            type="response")
 
 #plot map
 predict_current_mask=mask(predict_current, raster(current,1))
 plot(p, main="A. torren-BRT prediction")
+plot(predict_current, main="P. henslowanum, current", 
+     xlim=c(-95,-70), ylim=c(40,52))
 
 #to crop to just North America
 cropped<-raster("E:/postdoc/Mod_WorldClim/ModLayers_2050_45/mod_rasters/mod_bio_1.tif")

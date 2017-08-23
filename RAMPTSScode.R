@@ -1,20 +1,60 @@
 #what you need:
+library("dismo", lib.loc="~/R/win-library/3.4")
+
 #test data that includes RAMP spreadsheet (we labeled as pr)
+pr<-read.csv(file="C:/Users/vprescott/Desktop/RAMP2/test_scores/Pisidium_henslowanum_test_scores.csv")
+pr2<-read.csv(file="C:/Users/vprescott/Desktop/RAMP2/training_scores/Pisidium_henslowanum_train_scores.csv")
 
 #create presence/absence for test data, let's say that a score of 6 or higher
 #means presence, while a score less than 6 means lower
 pr$pa_test<- ifelse(as.numeric(pr$Score)>5,1,0)
+pr2$pa_train<-ifelse(as.numeric(pr$Score)>5,1,0)
+
+calc.deviance(obs=pr2$pa_train, pred=pr$pa_test, calc.mean = TRUE)
 
 #combined that column with the dataset
-d<-cbind(pr$pa_test,pr)
+d<-cbind(pr$pa_test,pr2$pa_train)
 
 #label the 1/0 as presence/absence
 pres<-d[d[,1]==1,2]
 abs<-d[d[,1]==0,2]
 
 #evaluate
-e<-evaluate(p=pres, a=abs)
+e<-evaluate(p=pr$pa_test, a=pr2$pa_train)
 e
 threshold(e)
-sensitivity<-sum(pres>=736.6559)/length(pres) 
-specificity<-sum(abs<736.6559)/length(abs)
+sensitivity<-sum(pres>=40757.43)/length(pres) 
+specificity<-sum(abs<40757.43)/length(abs)
+sensitivity
+specificity
+
+
+#what you need:
+library("dismo", lib.loc="~/R/win-library/3.4")
+
+#test data that includes RAMP spreadsheet (we labeled as pr)
+pr<-read.csv(file="C:/Users/vprescott/Desktop/RAMP2/test_scores/Pisidium_henslowanum_test_scores.csv")
+pr2<-read.csv(file="C:/Users/vprescott/Desktop/RAMP2/training_scores/Pisidium_henslowanum_train_scores.csv")
+
+#create presence/absence for test data, let's say that a score of 6 or higher
+#means presence, while a score less than 6 means lower
+pr$pa_test<- ifelse(as.numeric(pr$Score)>5,1,0)
+pr2$pa_train<-ifelse(as.numeric(pr$Score)>5,1,0)
+
+calc.deviance(obs=pr2$pa_train, pred=pr$pa_test, calc.mean = TRUE)
+
+#combined that column with the dataset
+d<-cbind(pr$pa_test,pr2$pa_train)
+
+#label the 1/0 as presence/absence
+pres<-d[d[,1]==1,2]
+abs<-d[d[,1]==0,2]
+
+#evaluate
+e<-evaluate(p=pr$pa_test, a=pr2$pa_train)
+e
+threshold(e)
+sensitivity<-sum(pres>=40757.43)/length(pres) 
+specificity<-sum(abs<40757.43)/length(abs)
+sensitivity
+specificity
