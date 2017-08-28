@@ -1,4 +1,4 @@
-library("dismo", lib.loc="~/R/library")
+library("dismo", lib.loc="~/R/win-library/3.4")
 library("gbm", lib.loc="~/R/win-library/3.4")
 library("maps", lib.loc="~/R/win-library/3.4")
 library("mapdata", lib.loc="~/R/win-library/3.4")
@@ -27,18 +27,41 @@ gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/gl_tiff",
 gl.current=stack(gl.current.list)
 
 #bring in coordinates of species of interest, and switch columns so that latitude is first
-a.torren.coords <- read.csv("C:/Users/vprescott/Desktop/RAMP2/Full_coords/Pisidiu_henslowanum_full.csv")
-a.torren.coords<-a.torren.coords[c("Latitude","Longitude")]
+sp.coords <- read.csv("C:/Users/vprescott/Desktop/RAMP2/Full_coords/Pisidiu_henslowanum_full.csv")
+sp.coords<-sp.coords[c("Latitude","Longitude")]
+
+#trying to upload multiple species coordinates
+species<-list.files(path="C:/Users/vprescott/Desktop/RAMP2/Full_coords",
+                    pattern="csv", full.names=TRUE)
+lapply(species, function(x){
+ sp.coords<-read.csv(x, header=T)
+ out<-function(sp.coords)
+   write.table(out, "C:/Users/vprescott/Desktop/",
+sep="\t",
+quote=F,
+row.names=F,
+col.names=T)
+})
+#path="C:/Users/vprescott/Desktop/RAMP2/Full_coords"
+#out.fil<-""
+#species<-dir(path, pattern=".csv")
+#for(i in 1:length(species)){
+#  sp.coords<-read.csv(species, header=T)
+
 
 #create presence training and test data
 set.seed(0)
-group=kfold(a.torren.coords, 5)
-pres_train=a.torren.coords[group!=1,]
-pres_test=a.torren.coords[group==1,]
+group=kfold(sp.coords, 5)
+pres_train=sp.coords[group!=1,]
+pres_test=sp.coords[group==1,]
 
 #create background training and test data (in lieu of absence data)
 set.seed(10)
-ext=extent(-1.5,23.5,48.4,67.5)
+max.x<-max(sp.coords$Latitude)
+min.x<-min(sp.coords$Latitude)
+max.y<-max(sp.coords$Longitude)
+min.y<-min(sp.coords$Longitude)
+ext=extent(min.x,max.x,min.y,max.y)
 backg=randomPoints(current, n=500,ext=ext, extf=1.25)
 colnames(backg)=c('Longitude','Latitude')
 group=kfold(backg,5)
@@ -70,16 +93,16 @@ test<-rbind(pres_test_current, backg_test_current)
 envtest<-data.frame(cbind(pa=pres_backg_test, test))
 
 #run a model, lower the learning rate if you get the algorithm warning
-a.torren.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
                                   learning.rate=0.01, bag.fraction=0.5)
 
 #determine best number of trees
-a.torren.tc5.lr01.train$gbm.call$best.trees
+sp.tc5.lr01.train$gbm.call$best.trees
 
 #determine how well the test data does with this model
-predict_test=predict(a.torren.tc5.lr01.train,envtest, 
-           n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+predict_test=predict(sp.tc5.lr01.train,envtest, 
+           n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
 calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
 d<-cbind(envtest$pa, predict_test)
@@ -88,42 +111,43 @@ abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
 threshold(e)
-sensitivity<-sum(pres>=0.8950081)/length(pres) 
+tr<-threshold(e, "equal_spec_sens")
+sensitivity<-sum(pres>=tr)/length(pres) 
   #use the desired threshold value from previous step
-specificity<-sum(abs<0.8950081)/length(abs)
+specificity<-sum(abs<tr)/length(abs)
 sensitivity
 specificity
 
 #run the model across the world (compare climate at gps points to the great lakes)
 #Takes about 5 hours to run
-predict_current<-predict(gl.current, a.torren.tc5.lr01.train,
-           n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+predict_current<-predict(gl.current, sp.tc5.lr01.train,
+           n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
 
 #plot map
 predict_current_mask=mask(predict_current, raster(current,1))
-plot(p, main="A. torren-BRT prediction")
+plot(p, main="sp-BRT prediction")
 plot(predict_current, main="P. henslowanum, current", 
      xlim=c(-95,-70), ylim=c(40,52))
 
 #to crop to just North America
-cropped<-raster("E:/postdoc/Mod_WorldClim/ModLayers_2050_45/mod_rasters/mod_bio_1.tif")
-current_NA<-crop(predict_current_mask, cropped)
-current_NA<-mask(current_NA,cropped)
-plot(current_NA,
-     main="ADD TITLE")
+#cropped<-raster("E:/postdoc/Mod_WorldClim/ModLayers_2050_45/mod_rasters/mod_bio_1.tif")
+#current_NA<-crop(predict_current_mask, cropped)
+#current_NA<-mask(current_NA,cropped)
+#plot(current_NA,
+#     main="ADD TITLE")
 
 #use future projection RCP 45 2050
 rcp45.50.list=list.files(path="E:/postdoc/WorldClim/2050/GF-RCP45/gf45bi50/", 
                          pattern="tif$", full.names=TRUE )
 rcp45.50=stack(rcp45.50.list)
 #Once again, the next step takes hours to run
-predict_RCP45_50<-predict(rcp45.50, a.torren.tc5.lr01.train,
-            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+predict_RCP45_50<-predict(rcp45.50,sp.tc5.lr01.train,
+            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
             type="response")
-predict_RCP45_50_cropped<-crop(predict_RCP45_50,cropped)
-predict_RCP45_50_mask<-mask(predict_RCP45_50_cropped,cropped)
-plot(predict_RCP45_50_mask, 
+#predict_RCP45_50_cropped<-crop(predict_RCP45_50,cropped)
+#predict_RCP45_50_mask<-mask(predict_RCP45_50_cropped,cropped)
+plot(predict_RCP45_50, 
      xlim=c(-180,-20), ylim=c(10,90),
      main="ADD TITLE")
            
@@ -131,16 +155,16 @@ plot(predict_RCP45_50_mask,
 rcp45.70.list=list.files(path="E:/postdoc/WorldClim/2070/GF-RCP45/gf45bi70/", 
                          pattern="tif$", full.names=TRUE )
 rcp45.70=stack(rcp45.70.list)
-rcp45.7.predict<-predict(rcp45.70, a.torren.tc5.lr01.train,
-                         n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+rcp45.7.predict<-predict(rcp45.70, sp.tc5.lr01.train,
+                         n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                          type="response")
-rcp45.70_crop=crop(rcp45.7.predict,cropped)
-rcp45.70_mask<-mask(rcp45.70_crop,cropped)
-plot(rcp45.70_mask, xlim=c(-170,-20), ylim=c(10,90),
-     main="A. torrentium RCP 4.5 2070", cex.main=1.25, 
-     breaks=breakpoints,col=colors)
-map(database="state", col="black",fill=FALSE, add=TRUE)
-text(cex.main=1.25,add=TURE)
+#rcp45.70_crop=crop(rcp45.7.predict,cropped)
+#rcp45.70_mask<-mask(rcp45.70_crop,cropped)
+#plot(rcp45.70_mask, xlim=c(-170,-20), ylim=c(10,90),
+#     main="A. torrentium RCP 4.5 2070", cex.main=1.25, 
+#     breaks=breakpoints,col=colors)
+#map(database="state", col="black",fill=FALSE, add=TRUE)
+#text(cex.main=1.25,add=TURE)
 
 #create animation of 2050 and 2070 
 test<-stack(r3,rcp45.70_mask)
@@ -149,5 +173,8 @@ animation<-animate(test, pause=1, n=100,
                    ylim=c(10,90), 
                    col=colors,
                    maxpixels=50000)
+
+})
+#}
 
 
