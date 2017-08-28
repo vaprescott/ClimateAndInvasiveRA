@@ -1,5 +1,5 @@
 ---
-title: "Boosted regressions for examining the effects of climate change on species distributions"
+title: "Boosted regressions for examining the effects of climate change on species distributions" 
 author: "Victoria Prescott"
 date: "7/25/2017"
 output: html_document
