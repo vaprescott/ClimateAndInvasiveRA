@@ -20,7 +20,8 @@ library("rgdal", lib.loc="~/R/library")
 ```
 
 ```{r eval=FALSE}
-gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/gl_tiff",
+#upload rasters of current climate variables
+gl.current.list=list.files(path="pathways to files",
           pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
 ```
@@ -31,7 +32,7 @@ a.torren.coords <- read.csv("pathways to files")
 ```
 
 ```{r eval=FALSE}
-#create presence training and test data
+#create training and test data for species presence
 set.seed(0)
 group=kfold(a.torren.coords, 5)
 pres_train=a.torren.coords[group!=1,]
@@ -50,7 +51,8 @@ backg_test=backg[group==1,]
 ```
 
 ```{r eval=FALSE}
-#create a plot, showing just first layer and plot to check data
+#create a map, showing just first raster layer 
+#plot to check data
 r=raster(current,1)
 plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
 points(backg_train, pch='-', cex=0.5, col='yellow')
@@ -82,6 +84,7 @@ envtest<-data.frame(cbind(pa=pres_backg_test, test))
 
 ```{r eval=FALSE}
 #run a model, lower the learning rate if you get the algorithm warning
+#aim for 1000 trees
 a.torren.tc5.lr001.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                  family="bernoulli", tree.complexity = 5,
                                   learning.rate=0.001, bag.fraction=0.5)
@@ -104,12 +107,10 @@ sensitivity<-sum(pres>=0.7156226)/length(pres)
 specificity<-sum(abs<0.7156226)/length(abs)
 sensitivity
 specificity
-#if TSS is close to 1 (TSS= sensitivity+specificity-1), move on
-#if TSS is not close to 1, lower learning rate
 ```
 
 ```{r eval=FALSE}
-#this takes quite a while to run
+#this next step takes quite a while to run
 #run the model across the great lakes (compare climate at gps points to the great lakes region)
 predict_current<-predict(gl.current, a.torren.tc5.lr01.train,
            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
@@ -125,8 +126,9 @@ plot(predict_current, main="A. torren, current",
 ```
 
 ```{r eval=FALSE}
-#use future projection RCP 45 2050
-rcp45.50.list=list.files(path="E:/postdoc/WorldClim/2050/GF-RCP45/gf45bi50/", 
+#bring in rasters for future climate change projections
+#use future projection RCP 45 2050 (compare climate at gps points to the great lakes region for the year 2050 with intermediate climate change levels)
+rcp45.50.list=list.files(path="path to files", 
                          pattern="tif$", full.names=TRUE )
 rcp45.50=stack(rcp45.50.list)
 ```
@@ -144,6 +146,7 @@ plot(predict_RCP45_50_mask,
 ```
 
 ```{r eval=FALSE}
+#change colors in map to match MaxEnt and RAMP
 colors<-c("blue","lightblue"," green", "yellow", "red")
 text(cex.main=1.25,add=TURE)
 test<-stack(r3,rcp45.70_mask)
