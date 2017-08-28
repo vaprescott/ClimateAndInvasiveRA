@@ -154,6 +154,6 @@ animation<-animate(test, pause=1, n=100,
                    xlim=c(-180,-20), 
                    ylim=c(10,90), 
                    col=colors,
-                   maxpixels=5000)
+                   maxpixels=5000)   
 ```
  
