@@ -114,7 +114,7 @@ specificity
 predict_current<-predict(gl.current, sp.tc5.lr01.train,
            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
-#10:04AM
+
 #plot map
 colfun<-colorRampPalette(c("blue","cyan","green","yellow","red"))
 plot(predict_current, main=c(filename, ", current"), 
