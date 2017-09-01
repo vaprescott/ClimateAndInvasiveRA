@@ -22,31 +22,22 @@ library("raster", lib.loc="~/R/win-library/3.4")
 current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tif_files", 
   pattern="tif$", full.names=TRUE )
 current=stack(current.list)
-gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/gl_tiff",
+gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tiff_gl",
           pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
+glb<-readOGR("E:/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 
 #bring in coordinates of species of interest, and switch columns so that latitude is first
-sp.coords <- read.csv("C:/Users/vprescott/Desktop/RAMP2/Full_coords/Pisidiu_henslowanum_full.csv")
-sp.coords<-sp.coords[c("Latitude","Longitude")]
-
-#trying to upload multiple species coordinates
 species<-list.files(path="C:/Users/vprescott/Desktop/RAMP2/Full_coords",
                     pattern="csv", full.names=TRUE)
-lapply(species, function(x){
- sp.coords<-read.csv(x, header=T)
- out<-function(sp.coords)
-   write.table(out, "C:/Users/vprescott/Desktop/",
-sep="\t",
-quote=F,
-row.names=F,
-col.names=T)
-})
-#path="C:/Users/vprescott/Desktop/RAMP2/Full_coords"
-#out.fil<-""
-#species<-dir(path, pattern=".csv")
-#for(i in 1:length(species)){
-#  sp.coords<-read.csv(species, header=T)
+for(i in 1:length(species)){
+  sp.coords<-read.csv(species[i], header=TRUE)
+filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
+                basename(species[i]))
+filename<-sub(pattern="_", replacement =" ", 
+                basename(filename))
+filename<-sapply(strsplit(filename, "_full"), "[[",1)  
+#sp.coords<-sp.coords[c("Latitude","Longitude")]
 
 
 #create presence training and test data
@@ -71,7 +62,7 @@ backg_test=backg[group==1,]
 #create a raster of rasterstack, showing just first layer and plot to check data
 r=raster(current,1)
 plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
-points(backg_train, pch='-', cex=0.5, col='yellow')
+points(backg_train, pch='-', cex=0.5, col='red')
 points(backg_test, pch='+', cex=0.5, col='black')
 points(pres_train, pch='+', col='green')
 points(pres_test, pch='+', col='blue')
@@ -111,7 +102,7 @@ abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
 threshold(e)
-tr<-threshold(e, "equal_spec_sens")
+tr<-threshold(e, "equal_sens_spec")
 sensitivity<-sum(pres>=tr)/length(pres) 
   #use the desired threshold value from previous step
 specificity<-sum(abs<tr)/length(abs)
@@ -123,12 +114,14 @@ specificity
 predict_current<-predict(gl.current, sp.tc5.lr01.train,
            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
-
+#10:04AM
 #plot map
-predict_current_mask=mask(predict_current, raster(current,1))
-plot(p, main="sp-BRT prediction")
-plot(predict_current, main="P. henslowanum, current", 
-     xlim=c(-95,-70), ylim=c(40,52))
+colfun<-colorRampPalette(c("blue","cyan","green","yellow","red"))
+plot(predict_current, main=c(filename, ", current"), 
+     xlim=c(-95,-70), ylim=c(40,52),
+      col=colfun(50))
+plot(glb, add=TRUE)
+
 
 #to crop to just North America
 #cropped<-raster("E:/postdoc/Mod_WorldClim/ModLayers_2050_45/mod_rasters/mod_bio_1.tif")
@@ -138,7 +131,7 @@ plot(predict_current, main="P. henslowanum, current",
 #     main="ADD TITLE")
 
 #use future projection RCP 45 2050
-rcp45.50.list=list.files(path="E:/postdoc/WorldClim/2050/GF-RCP45/gf45bi50/", 
+rcp45.50.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_45/mod_50_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.50=stack(rcp45.50.list)
 #Once again, the next step takes hours to run
@@ -148,8 +141,10 @@ predict_RCP45_50<-predict(rcp45.50,sp.tc5.lr01.train,
 #predict_RCP45_50_cropped<-crop(predict_RCP45_50,cropped)
 #predict_RCP45_50_mask<-mask(predict_RCP45_50_cropped,cropped)
 plot(predict_RCP45_50, 
-     xlim=c(-180,-20), ylim=c(10,90),
-     main="ADD TITLE")
+     main="P. henslowanum, RCP 4.5 2050", 
+     xlim=c(-95,-70), ylim=c(40,52),
+     col=colfun(50))
+plot(glb, add=TRUE)
            
 #do the same for the next climate horizon
 rcp45.70.list=list.files(path="E:/postdoc/WorldClim/2070/GF-RCP45/gf45bi70/", 
@@ -167,14 +162,14 @@ rcp45.7.predict<-predict(rcp45.70, sp.tc5.lr01.train,
 #text(cex.main=1.25,add=TURE)
 
 #create animation of 2050 and 2070 
-test<-stack(r3,rcp45.70_mask)
+test<-stack(predict_current, predict_RCP45_50)
 animation<-animate(test, pause=1, n=100, 
-                   xlim=c(-180,-20), 
-                   ylim=c(10,90), 
-                   col=colors,
-                   maxpixels=50000)
+                   xlim=c(-95,-70), 
+                   ylim=c(40,52),
+                   col=colfun(50),
+                   maxpixels=7000000)
 
-})
-#}
+
+}
 
 
