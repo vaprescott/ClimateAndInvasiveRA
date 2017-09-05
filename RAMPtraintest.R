@@ -1,7 +1,8 @@
 #get training and test data for RAMP
 mt<-read.csv(file="C:/Users/vprescott/Desktop/RAMP2/Full_coords/Pisidiu_henslowanum_full.csv")
 
-mt<- unique(mt)
+#created unique points BEFORE saving
+#mt<- unique(mt)
 
 #create training and test data
 set.seed(0)
