@@ -4,7 +4,7 @@ library("maps", lib.loc="~/R/win-library/3.4")
 library("mapdata", lib.loc="~/R/win-library/3.4")
 library("maptools", lib.loc="~/R/win-library/3.4")
 library("rgdal", lib.loc="~/R/win-library/3.4")
-library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
+#library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
 library("raster", lib.loc="~/R/win-library/3.4")
 
 #trying to bring in tiff files from postgre
