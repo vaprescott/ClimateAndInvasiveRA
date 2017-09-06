@@ -10,6 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r eval=FALSE}
+#Code modeled after:
+#http://rspatial.org/sdm/rst/1_sdm_introduction.html
+#https://cran.r-project.org/web/packages/dismo/vignettes/brt.pdf
 #You will need the following packages:
 library("dismo", lib.loc="~/R/library")
 library("gbm", lib.loc="~/R/library")
