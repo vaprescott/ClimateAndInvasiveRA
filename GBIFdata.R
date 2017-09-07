@@ -10,7 +10,6 @@ occ<-occ_search(taxonKey=key,
                 limit=4500, 
                 fields=c('decimalLatitude', 'decimalLongitude'),
                 return='data')
-head(occ)
 
 #plot to double check distribution
 current<-raster("E:/postdoc/Bioclim/WorldClim/Current/tif_files/bio_1.tif")
