@@ -18,7 +18,6 @@ library("raster", lib.loc="~/R/win-library/3.4")
 
 
 #bring in tiff files for climate data and put them into one rasterstack
-
 current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tif_files", 
   pattern="tif$", full.names=TRUE )
 current=stack(current.list)
@@ -150,7 +149,7 @@ plot(glb, add=TRUE)
 rcp45.70.list=list.files(path="E:/postdoc/WorldClim/2070/GF-RCP45/gf45bi70/", 
                          pattern="tif$", full.names=TRUE )
 rcp45.70=stack(rcp45.70.list)
-rcp45.7.predict<-predict(rcp45.70, sp.tc5.lr01.train,
+rcp45.70.predict<-predict(rcp45.70, sp.tc5.lr01.train,
                          n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                          type="response")
 #rcp45.70_crop=crop(rcp45.7.predict,cropped)
@@ -160,6 +159,22 @@ rcp45.7.predict<-predict(rcp45.70, sp.tc5.lr01.train,
 #     breaks=breakpoints,col=colors)
 #map(database="state", col="black",fill=FALSE, add=TRUE)
 #text(cex.main=1.25,add=TURE)
+
+#RCP85 2050
+rcp85.50.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_48/mod_50_85_tiff_gl", 
+                         pattern="tif$", full.names=TRUE )
+rcp85.50=stack(rcp85.50.list)
+rcp85.50.predict<-predict(rcp85.50, sp.tc5.lr01.train,
+                         n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
+                         type="response")
+
+#RCP85 2070
+rcp45.70.list=list.files(path="E:/postdoc/WorldClim/2070/GF-RCP45/gf45bi70/", 
+                         pattern="tif$", full.names=TRUE )
+rcp45.70=stack(rcp45.70.list)
+rcp45.7.predict<-predict(rcp45.70, sp.tc5.lr01.train,
+                         n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
+                         type="response")
 
 #create animation of 2050 and 2070 
 test<-stack(predict_current, predict_RCP45_50)
