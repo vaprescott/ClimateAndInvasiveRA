@@ -6,6 +6,7 @@ library("maptools", lib.loc="~/R/win-library/3.4")
 library("rgdal", lib.loc="~/R/win-library/3.4")
 #library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
 library("raster", lib.loc="~/R/win-library/3.4")
+library("rasterVis", lib.loc="~/R/win-library/3.4")
 
 #trying to bring in tiff files from postgre
 #con<- dbConnect(PostgreSQL(), 
@@ -102,7 +103,8 @@ envtest<-data.frame(cbind(pa=pres_backg_test, test))
 #run a model, lower the learning rate if you get the algorithm warning
 sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
-                                  learning.rate=0.01, bag.fraction=0.5)
+                                  learning.rate=0.01, bag.fraction=0.5,
+                                  cv.folds=5)
 
 #determine best number of trees
 sp.tc5.lr01.train$gbm.call$best.trees
