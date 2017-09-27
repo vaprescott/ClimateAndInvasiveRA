@@ -62,6 +62,12 @@ group=kfold(sp.coords, 5)
 pres_train=sp.coords[group!=1,]
 pres_test=sp.coords[group==1,]
 
+#save training and testing data for RAMP
+write.csv(pres_train,
+          file="C:/Users/vprescott/Desktop/RAMP2/training/Pisidium_henslowanum.csv")
+write.csv(pres_test, 
+          file="C:/Users/vprescott/Desktop/RAMP2/test/Pisidium_henslowanum.csv")
+
 #create background training and test data (in lieu of absence data)
 set.seed(10)
 ext=extent(bias3)
@@ -69,7 +75,7 @@ bias3<-readOGR("E:/postdoc/analysis_files/background/misgu3_MCP/mis_poly_1.shp")
 backg=randomPoints(current, 
                    n=nrow(sp.coords),
                    ext=ext,
-                   extf=1.25)
+                   extf=1)
 colnames(backg)=c('Longitude','Latitude')
 #backg<-backg[,c("Longitude","Latitude")]
 group=kfold(backg,5)
@@ -104,7 +110,7 @@ envtest<-data.frame(cbind(pa=pres_backg_test, test))
 sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
                                   learning.rate=0.01, bag.fraction=0.5,
-                                  cv.folds=5)
+                                  n.folds=5)
 
 #determine best number of trees
 sp.tc5.lr01.train$gbm.call$best.trees

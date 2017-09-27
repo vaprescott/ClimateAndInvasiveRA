@@ -64,5 +64,7 @@ levelplot(rcp45.50.predict,
           at=seq(0,1, length.out=120),
           col.regions=colfun)
           
-          
+
+f=raster(rcp45.50,1)
+plot(!is.na(f), col=c('white','light grey'), legend=FALSE)
           
