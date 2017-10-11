@@ -3,8 +3,8 @@ library("rgbif", lib.loc="~/R/win-library/3.4")
 library("raster", lib.loc="~/R/win-library/3.4")
 
 #determin which species you want
-key<-name_suggest(q='Silurus glanis', rank='species')$key[1]
-
+key<-name_suggest(q='Osteopilus septentrionalis', rank='species')$key[1]
+ 
 #get occurrence data from GBIF
 occ<-occ_search(taxonKey=key, 
                 limit=4500, 
@@ -12,24 +12,24 @@ occ<-occ_search(taxonKey=key,
                 return='data')
 
 #plot to double check distribution
-current<-raster("E:/postdoc/Bioclim/WorldClim/Current/tif_files/bio_1.tif")
-plot(!is.na(current), 
-     col=c('white','light grey'), 
-     legend=FALSE)
-plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
-points(occ, pch='-', col='red')
+#current<-raster("E:/postdoc/Bioclim/WorldClim/Current/tif_files/bio_1.tif")
+#plot(!is.na(current), 
+#     col=c('white','light grey'), 
+#     legend=FALSE)
+#plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
+#points(occ, pch='-', col='red')
 
 #switch column order and get unique values
 occ2<-unique(occ[c('decimalLongitude','decimalLatitude')])
-head(occ2)
+#head(occ2)
 
 #remove 'decimal' from column name
-names(occ2)[1:2]<-c("Longitude","Latitude")
-
+names(occ2)[1:2]<-c("longitude","latitude")
+occ2 <- unique(occ2[ , 1:2 ] )
 
 #save file name
 #make sure to remane file!
 write.csv(occ2,
-          file="C:/Users/vprescott/Desktop/RAMP2/Silurus glanis2.csv")
+          file="E:/postdoc/analysis_files/sp_coords/raw_coords/Osteopilus_septentrionalis_raw.csv")
 
 #R likes to  have longitude first in analysis, but RAMP like latitude first

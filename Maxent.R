@@ -45,7 +45,7 @@ filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
               basename(species[i]))
 filename<-sub(pattern="_", replacement =" ", 
               basename(filename))
-filename<-sapply(strsplit(filename, "_full"), "[[",1)  
+filename<-sapply(strsplit(filename, "_full2"), "[[",1)  
 sp.coords<-sp.coords[,c("longitude","latitude")]
 projection(sp.coords)<-"+proj=longlat +ellps=WGS84 +datum=WGS84"
 
@@ -55,8 +55,6 @@ group=kfold(sp.coords, 5)
 pres_train=sp.coords[group!=1,]
 pres_test=sp.coords[group==1,]
 
-#import training and test occurrence points
-pres_train<-read.csv('C:/Users/vprescott/Desktop/RAMP2/training')
 
 #create background training and test data (in lieu of absence data)
 set.seed(10)
@@ -69,7 +67,7 @@ backg=randomPoints(current,
                    extf=1.25)
 colnames(backg)=c('Longitude','Latitude')
 group=kfold(backg,5)
-backg_train=backg[group!=1,]
+#backg_train=backg[group!=1,]
 backg_test=backg[group==1,]
 View(backg_test)
 
@@ -144,6 +142,22 @@ plot.4550<-levelplot(rcp45.50.predict,
                      maxpixels=13000000) +
   layer(sp.polygons(glb))
 print(plot.4550)
+dev.off()
+
+#2470
+rcp45.70.predict<-predict(rcp45.70, xm)
+png(paste0("E:/postdoc/analysis_files/png_files/4570/4570_", filename, ".png"))
+writeRaster(rcp45.70.predict,
+            filename=paste0('E:/postdoc/analysis_files/raster_files/4570_', filename, '.tif'))
+plot.4570<-levelplot(rcp45.70.predict, 
+                     main=paste(filename, "RCP 4.5 2070"), 
+                     xlim=c(-95,-70), ylim=c(40,52),
+                     at=seq(0,1, length.out=1000),
+                     col.regions=colfun,
+                     margin=F,
+                     maxpixels=15000000) +
+  layer(sp.polygons(glb))
+print(plot.4570)
 dev.off()
 
 #Predict for RCP 4.5. 2050

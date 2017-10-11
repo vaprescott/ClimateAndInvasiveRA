@@ -53,7 +53,7 @@ filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
 filename<-sub(pattern="_", replacement =" ", 
                 basename(filename))
-filename<-sapply(strsplit(filename, "_full"), "[[",1)  
+filename<-sapply(strsplit(filename, "_full2"), "[[",1)  
 sp.coords<-sp.coords[,c("Longitude","Latitude")]
 
 #create presence training and test data
