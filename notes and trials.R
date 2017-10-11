@@ -68,3 +68,9 @@ levelplot(rcp45.50.predict,
 f=raster(rcp45.50,1)
 plot(!is.na(f), col=c('white','light grey'), legend=FALSE)
           
+
+if_<- unique(if_[ , 1:2 ] )
+nrows(mf)
+View(mf)
+write.csv(if_,
+          file="E:/postdoc/analysis_files/sp_coords/full_coords/Carassius_carassius_full.csv")
