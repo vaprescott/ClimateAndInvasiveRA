@@ -74,3 +74,38 @@ nrows(mf)
 View(mf)
 write.csv(if_,
           file="E:/postdoc/analysis_files/sp_coords/full_coords/Carassius_carassius_full.csv")
+
+#create testing and training data from north america
+bias3<-readOGR("C:/Users/vprescott/Desktop/coastlines-split-4326/coastlines-split-4326/NorthAmerica.shp")
+ext=extent(bias3)
+xy1<-ED[1:2]
+xy2<-ED2[2:1]
+spdf[c('longitude','latitude')]
+spdf<-SpatialPoints(coords=xy1, data=ED,
+                             proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84"))
+spdf<-SpatialPoints(coords=xy1,
+                    proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84"))
+
+pt<-sp::over(aa,spdf)
+
+plot(spdf)
+plot(aa, add=TRUE)
+pres_train<-extract(spdf,bias3)
+a<-spdf[aa]
+plot(spdf, ext=extent(aa))
+plot(aa)
+plot(spdf, add=TRUE)
+aa<-spTransform(bias3, crs("+proj=longlat +datum=WGS84 +ellps=WGS84"))
+a3<-data.frame(a)
+head(a3)
+df <- data.frame(x=coordinates(a)[,1], y=coordinates(a)[,2], a@data)
+
+write.csv(a3, 
+          file="C:/Users/vprescott/Desktop/")
+
+r.clip<-crop(spdf,aa)
+plot(r.clip)
+plot(aa, add=TRUE)
+r.mask<-rasterize(r.clip)
+
+ab<-gIntersects(spdf,aa)
