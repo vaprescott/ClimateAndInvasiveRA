@@ -133,3 +133,7 @@ plot(aa, add=TRUE)
 r.mask<-rasterize(r.clip)
 
 ab<-gIntersects(spdf,aa)
+
+xy2<-CA[2:1]
+spdf<-SpatialPoints(coords=xy2,
+                    proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"))
