@@ -111,6 +111,7 @@ sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
                                   learning.rate=0.01, bag.fraction=0.5,
                                   n.folds=5)
+##TRY TO PLOT SP.TC5.LR01.TRAIN
 
 #determine best number of trees
 sp.tc5.lr01.train$gbm.call$best.trees
@@ -119,6 +120,7 @@ sp.tc5.lr01.train$gbm.call$best.trees
 predict_test=predict(sp.tc5.lr01.train,envtest, 
            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
+##TRY TO PLOT PREDICT_TEST
 calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
 d<-cbind(envtest$pa, predict_test)
 pres<-d[d[,1]==1,2]
@@ -144,7 +146,7 @@ form3<-sprintf('E:/postdoc/analysis_files/TSS/TSS_%s.csv', filename)
 write.csv(TSS,
           file=form3)
 
-#run the model across the world (compare climate at gps points to the great lakes)
+# compare climate at gps points to the great lakes
 #Takes about 5 hours to run
 #save a png of the plot
 current.predict<-predict(gl.current, sp.tc5.lr01.train,
