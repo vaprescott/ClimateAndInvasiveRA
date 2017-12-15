@@ -68,6 +68,7 @@ backg=randomPoints(current,
 colnames(backg)=c('Longitude','Latitude')
 group=kfold(backg,5)
 #backg_train=backg[group!=1,]
+#why is that commented out?
 backg_test=backg[group==1,]
 View(backg_test)
 
