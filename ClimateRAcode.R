@@ -19,7 +19,7 @@ library("rasterVis", lib.loc="~/R/win-library/3.4")
 
 
 #bring in tiff files for climate data and put them into one rasterstack
-current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tif_files", 
+current.list=list.files(path="D:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/wc2.0_2.5m_bio", 
   pattern="tif$", full.names=TRUE )
 current=stack(current.list)
 #RCP 45 2050
@@ -45,37 +45,81 @@ gl.current=stack(gl.current.list)
 glb<-readOGR("E:/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 
 #bring in coordinates of species of interest
-species<-list.files(path="C:/Users/vprescott/Desktop/RAMP2/Full_coords",
-                    pattern="csv", full.names=TRUE)
+species<-list.files(path="D:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
+                    pattern="train_", full.names=TRUE)
+full.species<-list.files(path="D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords",
+                         pattern="_corrected2.csv",full.names=TRUE)
 for(i in 1:length(species)){
-  sp.coords<-read.csv(species[i], header=TRUE)
+  sp.coords.train<-read.csv(species[i], header=TRUE)
 filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
-filename<-sub(pattern="_", replacement =" ", 
-                basename(filename))
-filename<-sapply(strsplit(filename, "_full2"), "[[",1)  
-sp.coords<-sp.coords[,c("Longitude","Latitude")]
+filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
+form1=sprintf('D:/BrokenHardDrive/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
+sp.coords.test<-read.csv(file=form1)
+#filename<-sub(pattern="_", replacement =" ", 
+#                basename(filename))
+
+sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
+sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
+head(sp.coords.test)
+
+#get full set of coords to get number of random background points
+filename.full<-sub(pattern=" ", replacement ="_", 
+                            basename(filename))
+form.coords<-sprintf('D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords/%s_corrected2.csv', filename.full)
+sp.coords.full<-read.csv(file=form.coords)
+head(sp.coords.full)
 
 #create presence training and test data
-set.seed(0)
-group=kfold(sp.coords, 5)
-pres_train=sp.coords[group!=1,]
-pres_test=sp.coords[group==1,]
+#set.seed(0)
+#group=kfold(sp.coords, 5)
+#pres_train=sp.coords[group!=1,]
+#pres_test=sp.coords[group==1,]
 
 #save training and testing data for RAMP
-write.csv(pres_train,
-          file="C:/Users/vprescott/Desktop/RAMP2/training/Pisidium_henslowanum.csv")
-write.csv(pres_test, 
-          file="C:/Users/vprescott/Desktop/RAMP2/test/Pisidium_henslowanum.csv")
+#write.csv(pres_train,
+         # file="C:/Users/vprescott/Desktop/RAMP2/training/Pisidium_henslowanum.csv")
+#write.csv(pres_test, 
+         # file="C:/Users/vprescott/Desktop/RAMP2/test/Pisidium_henslowanum.csv")
 
 #create background training and test data (in lieu of absence data)
 set.seed(10)
-ext=extent(bias3)
-bias3<-readOGR("E:/postdoc/analysis_files/background/misgu3_MCP/mis_poly_1.shp")
-backg=randomPoints(current, 
-                   n=nrow(sp.coords),
-                   ext=ext,
-                   extf=1)
+form_backg=sprintf("D:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif", filename)
+background=raster(form_backg)
+#ext=extent(90.0000078231,-180,180.000018775,-60)
+#ext=extent(background)
+#crs(background)<-"+proj=longlat +datum=WGS84"
+#r.spgrd = background[!is.na(background[[1]]),]
+#bias3<-raster("E:/postdoc/analysis_files/background/misgu3_MCP/mis_poly_1.shp")
+#backg=randomPoints(current, 
+#                   n=nrow(sp.coords.full),
+#                   ext=ext,
+#                   extf=1)
+raster.random.points<-function(size, background, na.rm=TRUE){
+  coords<-matrix(0, nrow=size, ncol=2)
+  coords[,1]<-runif(size, xmin(background), xmax(background))
+  coords[,2] <- runif(size, ymin(background), ymax(background))
+  if (na.rm) {
+    cells <- cellFromXY(background, coords)
+    na.cnt <- length(which(is.na(background[cells])))
+    while (na.cnt > 0){
+      recs <- which(is.na(background[cells]))
+      coords[recs,1] <- runif(length(recs), xmin(background), xmax(background))
+      coords[recs,2] <- runif(length(recs), ymin(background), ymax(background))
+      cells <- cellFromXY(background, coords)
+      na.cnt <- length(which(is.na(background[cells])))
+    }}
+  return(coords)
+}
+# now call the function to generate random points
+coords <- raster.random.points(nrow(sp.coords.full), background)
+# plot the raster and the random points
+plot(background)
+points(coords, pch=19, cex=0.2)
+backg<-coords
+# extract the cell values associated with the random points
+#cells <- cellFromXY(background, coords)
+#vals <- background[cells]
 colnames(backg)=c('Longitude','Latitude')
 #backg<-backg[,c("Longitude","Latitude")]
 group=kfold(backg,5)
@@ -87,12 +131,12 @@ r=raster(current,1)
 plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
 points(backg_train, pch='-', cex=0.5, col='blue')
 points(backg_test, pch='+', cex=0.5, col='black')
-points(pres_train, pch='+', cex=0.5, col='green')
-points(pres_test, pch='+', cex=0.5,col='purple')
+points(sp.coords.train, pch='+', cex=0.5, col='yellow')
+points(sp.coords.test, pch='+', cex=0.5,col='purple')
 
 #create data frame with presence and background training scores and environmental data
 backg_train_current<-extract(current, backg_train)
-pres_train_current<-extract(current, pres_train)
+pres_train_current<-extract(current, sp.coords.train)
 pres_backg_train<-c(rep(1,nrow(pres_train_current)), 
                     rep(0, nrow(backg_train_current)))
 train<-rbind(pres_train_current, backg_train_current)
@@ -100,7 +144,7 @@ envtrain<-data.frame(cbind(pa=pres_backg_train, train))
 
 #do the same for test data
 backg_test_current<-extract(current, backg_test)
-pres_test_current<-extract(current, pres_test)
+pres_test_current<-extract(current, sp.coords.test)
 pres_backg_test<-c(rep(1,nrow(pres_test_current)), 
                    rep(0, nrow(backg_test_current)))
 test<-rbind(pres_test_current, backg_test_current)
