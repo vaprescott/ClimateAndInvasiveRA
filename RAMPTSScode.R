@@ -7,13 +7,13 @@ test<-read.csv(file="C:/Users/vprescott/Desktop/RAMP2/global_test_scores/current
 
 #create presence/absence for test data, let's say that a score of 6 or higher
 #means presence, while a score less than 6 means lower
-test$pa_test<- ifelse(as.numeric(test$Score)>5,1,0)
-train$pa_train<-ifelse(as.numeric(train$Score)>5,1,0)
+test$pa<- ifelse(as.numeric(test$Score)>5,1,0)
+train$pa<-ifelse(as.numeric(train$Score)>5,1,0)
 test$true<-1
 head(test)
 #head(pr)
 #View(pr2)
-calc.deviance(obs=test$pa_test, pred=train$pa_train, calc.mean = TRUE)
+calc.deviance(obs=test$pa, pred=train$pa, calc.mean = TRUE)
 
 #combined that column with the dataset
 d<-cbind(test$pa_test,test$true)

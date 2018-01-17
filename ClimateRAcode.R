@@ -39,7 +39,7 @@ rcp85.70.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_8
                          pattern="tif$", full.names=TRUE )
 rcp85.70=stack(rcp45.70.list)
 #great lakes current
-gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tiff_gl",
+gl.current.list=list.files(path="D:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tiff_gl",
           pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
 glb<-readOGR("E:/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
@@ -86,7 +86,6 @@ head(sp.coords.full)
 set.seed(10)
 form_backg=sprintf("D:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif", filename)
 background=raster(form_backg)
-#ext=extent(90.0000078231,-180,180.000018775,-60)
 #ext=extent(background)
 #crs(background)<-"+proj=longlat +datum=WGS84"
 #r.spgrd = background[!is.na(background[[1]]),]
@@ -113,6 +112,7 @@ raster.random.points<-function(size, background, na.rm=TRUE){
 }
 # now call the function to generate random points
 coords <- raster.random.points(nrow(sp.coords.full), background)
+
 # plot the raster and the random points
 plot(background)
 points(coords, pch=19, cex=0.2)
@@ -125,6 +125,9 @@ colnames(backg)=c('Longitude','Latitude')
 group=kfold(backg,5)
 backg_train=backg[group!=1,]
 backg_test=backg[group==1,]
+form_bg_test<-sprintf("D:/BrokenHardDrive/postdoc/analysis_files/RAMP_test_background/%s.csv", filename)
+write.csv(backg_test,
+          file=form_bg_test)
 
 #create a raster of rasterstack, showing just first layer and plot to check data
 r=raster(current,1)
