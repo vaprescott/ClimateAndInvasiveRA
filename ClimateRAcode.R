@@ -8,6 +8,15 @@ library("rgdal", lib.loc="~/R/win-library/3.4")
 library("raster", lib.loc="~/R/win-library/3.4")
 library("rasterVis", lib.loc="~/R/win-library/3.4")
 
+library("dismo")
+library("gbm")
+library("maps")
+library("mapdata")
+library("maptools")
+library("rgdal")
+library("raster")
+library("rasterVis")
+
 #trying to bring in tiff files from postgre
 #con<- dbConnect(PostgreSQL(), 
 #                host='localhost', 
@@ -19,7 +28,7 @@ library("rasterVis", lib.loc="~/R/win-library/3.4")
 
 
 #bring in tiff files for climate data and put them into one rasterstack
-current.list=list.files(path="D:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/wc2.0_2.5m_bio", 
+current.list=list.files(path="D:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tif_files", 
   pattern="tif$", full.names=TRUE )
 current=stack(current.list)
 #RCP 45 2050
@@ -42,16 +51,16 @@ rcp85.70=stack(rcp45.70.list)
 gl.current.list=list.files(path="D:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tiff_gl",
           pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
-glb<-readOGR("E:/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
+glb<-readOGR("D:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 
 #bring in coordinates of species of interest
 species<-list.files(path="D:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
-full.species<-list.files(path="D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords",
-                         pattern="_corrected2.csv",full.names=TRUE)
+#full.species<-list.files(path="D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords",
+#                         pattern="_corrected2.csv",full.names=TRUE)
 for(i in 1:length(species)){
   sp.coords.train<-read.csv(species[i], header=TRUE)
-filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
+  filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
 filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
 form1=sprintf('D:/BrokenHardDrive/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
@@ -64,11 +73,11 @@ sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
 head(sp.coords.test)
 
 #get full set of coords to get number of random background points
-filename.full<-sub(pattern=" ", replacement ="_", 
-                            basename(filename))
-form.coords<-sprintf('D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords/%s_corrected2.csv', filename.full)
-sp.coords.full<-read.csv(file=form.coords)
-head(sp.coords.full)
+#filename.full<-sub(pattern=" ", replacement ="_", 
+#                            basename(filename))
+#form.coords<-sprintf('D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords/%s_corrected2.csv', filename.full)
+#sp.coords.full<-read.csv(file=form.coords)
+#head(sp.coords.full)
 
 #create presence training and test data
 #set.seed(0)
@@ -83,51 +92,49 @@ head(sp.coords.full)
          # file="C:/Users/vprescott/Desktop/RAMP2/test/Pisidium_henslowanum.csv")
 
 #create background training and test data (in lieu of absence data)
-set.seed(10)
-form_backg=sprintf("D:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif", filename)
-background=raster(form_backg)
+#set.seed(10)
+#form_backg=sprintf("D:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif", filename)
+#background=raster(form_backg)
 #ext=extent(background)
 #crs(background)<-"+proj=longlat +datum=WGS84"
-#r.spgrd = background[!is.na(background[[1]]),]
-#bias3<-raster("E:/postdoc/analysis_files/background/misgu3_MCP/mis_poly_1.shp")
-#backg=randomPoints(current, 
-#                   n=nrow(sp.coords.full),
-#                   ext=ext,
-#                   extf=1)
-raster.random.points<-function(size, background, na.rm=TRUE){
-  coords<-matrix(0, nrow=size, ncol=2)
-  coords[,1]<-runif(size, xmin(background), xmax(background))
-  coords[,2] <- runif(size, ymin(background), ymax(background))
-  if (na.rm) {
-    cells <- cellFromXY(background, coords)
-    na.cnt <- length(which(is.na(background[cells])))
-    while (na.cnt > 0){
-      recs <- which(is.na(background[cells]))
-      coords[recs,1] <- runif(length(recs), xmin(background), xmax(background))
-      coords[recs,2] <- runif(length(recs), ymin(background), ymax(background))
-      cells <- cellFromXY(background, coords)
-      na.cnt <- length(which(is.na(background[cells])))
-    }}
-  return(coords)
-}
+
+#raster.random.points<-function(size, background, na.rm=TRUE){
+#  coords<-matrix(0, nrow=size, ncol=2)
+#  coords[,1]<-runif(size, xmin(background), xmax(background))
+#  coords[,2] <- runif(size, ymin(background), ymax(background))
+#  if (na.rm) {
+#    cells <- cellFromXY(background, coords)
+#    na.cnt <- length(which(is.na(background[cells])))
+#    while (na.cnt > 0){
+#      recs <- which(is.na(background[cells]))
+#      coords[recs,1] <- runif(length(recs), xmin(background), xmax(background))
+#      coords[recs,2] <- runif(length(recs), ymin(background), ymax(background))
+#      cells <- cellFromXY(background, coords)
+#      na.cnt <- length(which(is.na(background[cells])))
+#    }}
+#  return(coords)
+#}
 # now call the function to generate random points
-coords <- raster.random.points(nrow(sp.coords.full), background)
+#coords <- raster.random.points(nrow(sp.coords.full), background)
 
 # plot the raster and the random points
-plot(background)
-points(coords, pch=19, cex=0.2)
-backg<-coords
-# extract the cell values associated with the random points
-#cells <- cellFromXY(background, coords)
-#vals <- background[cells]
-colnames(backg)=c('Longitude','Latitude')
+#plot(background)
+#points(coords, pch=19, cex=0.2)
+#backg<-coords
+#colnames(backg)=c('Longitude','Latitude')
 #backg<-backg[,c("Longitude","Latitude")]
-group=kfold(backg,5)
-backg_train=backg[group!=1,]
-backg_test=backg[group==1,]
-form_bg_test<-sprintf("D:/BrokenHardDrive/postdoc/analysis_files/RAMP_test_background/%s.csv", filename)
-write.csv(backg_test,
-          file=form_bg_test)
+#group=kfold(backg,5)
+#backg_train=backg[group!=1,]
+#backg_test=backg[group==1,]
+#form_bg_test<-sprintf("D:/BrokenHardDrive/postdoc/analysis_files/RAMP_test_background/%s.csv", filename)
+#write.csv(backg_test,
+#          file=form_bg_test)
+
+#get background training and testing data points
+form_bg_train<-sprintf("D:/BrokenHardDrive/postdoc/analysis_files/train_background/%s.csv", filename)
+backg_train<-read.csv(file=form_bg_train)
+form_bg_test<-sprintf("D:/BrokenHardDrive/postdoc/analysis_files/test_background/%s.csv", filename)
+backg_test<-read.csv(file=form_bg_test)
 
 #create a raster of rasterstack, showing just first layer and plot to check data
 r=raster(current,1)
@@ -192,16 +199,19 @@ TSS<-sensitivity + specificity - 1
 form3<-sprintf('E:/postdoc/analysis_files/TSS/TSS_%s.csv', filename)
 write.csv(TSS,
           file=form3)
-
 # compare climate at gps points to the great lakes
 #Takes about 5 hours to run
 #save a png of the plot
+{start_time<-Sys.time()
 current.predict<-predict(gl.current, sp.tc5.lr01.train,
            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
+end_time<-Sys.time()}
+end_time-start_time
+
 colfun<-colorRampPalette(
   c("blue","cyan","green","yellow","red"))
-png(paste0("E:/postdoc/analysis_files/png_files/current/current_", filename, ".png"))
+png(paste0("D:/BrokenHardDrive/postdoc/analysis_files/png_files/current/current_", filename, ".png"))
 current.plot<-levelplot(current.predict, 
           main=paste(filename, "current"), 
           xlim=c(-95,-70), ylim=c(40,52),
@@ -210,6 +220,7 @@ current.plot<-levelplot(current.predict,
           margin=F,
           maxpixels=13000000) +
   layer(sp.polygons(glb))
+        
 print(current.plot)
 dev.off()
 
