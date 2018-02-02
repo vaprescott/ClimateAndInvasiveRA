@@ -1,13 +1,3 @@
-library("dismo", lib.loc="~/R/win-library/3.4")
-library("gbm", lib.loc="~/R/win-library/3.4")
-library("maps", lib.loc="~/R/win-library/3.4")
-library("mapdata", lib.loc="~/R/win-library/3.4")
-library("maptools", lib.loc="~/R/win-library/3.4")
-library("rgdal", lib.loc="~/R/win-library/3.4")
-#library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
-library("raster", lib.loc="~/R/win-library/3.4")
-library("rasterVis", lib.loc="~/R/win-library/3.4")
-
 library("dismo")
 library("gbm")
 library("maps")
@@ -16,16 +6,6 @@ library("maptools")
 library("rgdal")
 library("raster")
 library("rasterVis")
-
-#trying to bring in tiff files from postgre
-#con<- dbConnect(PostgreSQL(), 
-#                host='localhost', 
-#                user='postgres',
-#                password='ApplePeachPear', 
-#                dbname='ClimateInvasiveRA')
-
-#ras<- readGDAL(con)
-
 
 #bring in tiff files for climate data and put them into one rasterstack
 current.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tif_files", 
@@ -61,8 +41,6 @@ glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 #bring in coordinates of species of interest
 species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
-#full.species<-list.files(path="D:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords",
-#                         pattern="_corrected2.csv",full.names=TRUE)
 
 for(i in 1:length(species)){
   sp.coords.train<-read.csv(species[i], header=TRUE)
@@ -76,7 +54,6 @@ for(i in 1:length(species)){
 
 sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
 sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
-#head(sp.coords.test)
 
 #get background training and testing data points
 form_bg_train<-sprintf("E:/BrokenHardDrive/postdoc/analysis_files/train_background/%s.csv", filename)
@@ -86,13 +63,6 @@ form_bg_test<-sprintf("E:/BrokenHardDrive/postdoc/analysis_files/test_background
 backg_test<-read.csv(file=form_bg_test)
 backg_test<-backg_test[,c("Longitude","Latitude")]
 
-#create a raster of rasterstack, showing just first layer and plot to check data
-#r=raster(current,1)
-#plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
-#points(backg_train, pch='-', cex=0.5, col='blue')
-#points(backg_test, pch='+', cex=0.5, col='black')
-#points(sp.coords.train, pch='+', cex=0.5, col='yellow')
-#points(sp.coords.test, pch='+', cex=0.5,col='purple')
 
 #create data frame with presence and background training scores and environmental data
 backg_train_current<-extract(current, backg_train)
@@ -199,16 +169,24 @@ trees$sp<-filename
 write.table(trees,
             file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_trees/trees.csv",
             append=T, sep=",", row.names=F, col.names = F)
-
+colfun<-colorRampPalette(
+  c("blue","cyan","green","yellow","red"))
+png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_", filename, ".png"))
+current.plot<-levelplot(current.predict, 
+                        main=paste(filename, "current_global"), 
+                        xlim=c(-95,-70), ylim=c(40,52),
+                        at=seq(0,1, length.out=1000),
+                        col.regions=colfun,
+                        margin=F,
+                        maxpixels=13000000) +
+  #layer(sp.polygons(glb))
+print(current.plot)
 # compare climate at gps points to the great lakes
 #Takes about 5 hours to run
 #save a png of the plot
-{start_time<-Sys.time()
 current.predict<-predict(gl.current, sp.tc5.lr01.train,
            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
-end_time<-Sys.time()}
-end_time-start_time
 
 colfun<-colorRampPalette(
   c("blue","cyan","green","yellow","red"))
@@ -225,11 +203,9 @@ print(current.plot)
 dev.off()
 
 #Once again, the next step takes hours to run
-{{start_time<-Sys.time()
-  rcp45.50.predict<-predict(rcp45.50,sp.tc5.lr01.train,
+rcp45.50.predict<-predict(rcp45.50,sp.tc5.lr01.train,
             n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
             type="response")
-
 
 png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/4550/4550_", filename, ".png"))
 plot.4550<-levelplot(rcp45.50.predict, 
@@ -293,21 +269,16 @@ plot.8570<-levelplot(rcp85.70.predict,
   layer(sp.polygons(glb))
 print(plot.8570)
 dev.off()
-
-end_time<-Sys.time()}
-  end_time-start_time
 }
 
 #create animation of 2050 and 2070 
-#test<-stack(current.predict,rcp45.50.predict, rcp85.50.predict, rcp85.70.predict)
-#animation<-animate(test, pause=2, n=100, 
-#                   xlim=c(-95,-70), 
-#                   ylim=c(40,52),
-#                   col=colors,
-#                   breaks=breakpoints,
-#                   maxpixels=7000000)
-
-}
+test<-stack(current.predict,rcp45.50.predict, rcp85.50.predict, rcp85.70.predict)
+animation<-animate(test, pause=2, n=100, 
+                   xlim=c(-95,-70), 
+                   ylim=c(40,52),
+                   col=colors,
+                   breaks=breakpoints,
+                   maxpixels=15000000)
 
 
 #get full set of coords to get number of random background points
@@ -367,4 +338,12 @@ end_time<-Sys.time()}
 #form_bg_test<-sprintf("D:/BrokenHardDrive/postdoc/analysis_files/RAMP_test_background/%s.csv", filename)
 #write.csv(backg_test,
 #          file=form_bg_test)
+
+#create a raster of rasterstack, showing just first layer and plot to check data
+#r=raster(current,1)
+#plot(!is.na(r), col=c('white','light grey'), legend=FALSE)
+#points(backg_train, pch='-', cex=0.5, col='blue')
+#points(backg_test, pch='+', cex=0.5, col='black')
+#points(sp.coords.train, pch='+', cex=0.5, col='yellow')
+#points(sp.coords.test, pch='+', cex=0.5,col='purple')
 
