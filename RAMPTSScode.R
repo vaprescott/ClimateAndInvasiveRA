@@ -18,7 +18,6 @@ testing<-rbind(test, bg)
 envtest<-data.frame(cbind(pa=pres_backg_test, testing))
 envtest<-envtest[,-2]
 
-
 #calc.deviance(obs=envtest$pa, pred=envtest$Score, calc.mean = TRUE)
 d<-envtest
 pres<-d[d[,1]==1,2]
@@ -26,33 +25,37 @@ abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
 threshold(e)
-tr<-threshold(e, "spec_sens")
+#tr<-threshold(e, "spec_sens")
 
-sensitivity<-sum(pres>=tr)/length(pres) 
+sensitivity<-sum(pres>=5.9999)/length(pres) 
 
-specificity<-sum(abs<tr)/length(abs)
+specificity<-sum(abs<5.9999)/length(abs)
 TSS<-sensitivity + specificity - 1
 TSS<-data.frame(TSS)
 TSS$sp<-filename
 write.table(TSS,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/TSS/TSS.csv",
+            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_TSS/TSS.csv",
             append=T, sep=",", row.names=F, col.names = F)
 sensitivity<-data.frame(sensitivity)
 sensitivity$sp<-filename
 write.table(sensitivity,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/sensitivity/sensitivity.csv",
+            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_sensitivity/sensitivity.csv",
             append=T, sep=",", row.names=F, col.names = F)
 specificity<-data.frame(specificity)
 specificity$sp<-filename
 write.table(specificity,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/specificity/specificity.csv",
+            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_specificity/specificity.csv",
             append=T, sep=",", row.names=F, col.names = F)
 tr<-data.frame(tr)
 tr$sp<-filename
 write.table(tr,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/threshold/threshold.csv",
+            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_threshold/threshold.csv",
             append=T, sep=",", row.names=F, col.names = F)
-
+auc<-data.frame(e@auc)
+auc$sp<-filename
+write.table(auc,
+           file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_auc/auc.csv",
+           append=T, sep=",", row.names=F, col.names = F)
 }
 
 
