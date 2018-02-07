@@ -1,4 +1,6 @@
-remoteLogin("http://10.17.28.65:12800", session=TRUE, diff=TRUE, commandline = TRUE, username="admin", password = "Web4fun@luc") 
+remoteLogin("", session=TRUE, diff=TRUE, commandline = TRUE, username="admin", password = "Web4fun@luc") 
+
+install.packages(c("dismo","gbm","maps","mapdata","maptools","rgdal","raster","rasterVis"))
 
 library("dismo")
 library("gbm")
@@ -10,60 +12,60 @@ library("raster")
 library("rasterVis")
 
 #bring in tiff files for climate data and put them into one rasterstack
-current.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tif_files", 
+current.list=list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/tif_files", 
                         pattern="tif$", full.names=TRUE )
 current=stack(current.list)
 
 #RCP 45 2050
-rcp45.50.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_45/mod_50_45_tiff_gl", 
+rcp45.50.list=list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/mod_50_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.50=stack(rcp45.50.list)
 
 #RCP 45 2070
-rcp45.70.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_45/mod_70_45_tiff_gl", 
+rcp45.70.list=list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/mod_70_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.70=stack(rcp45.70.list)
 
 #RCP85 2050
-rcp85.50.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_85/mod_50_85_tiff_gl", 
+rcp85.50.list=list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/mod_50_85_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp85.50=stack(rcp85.50.list)
 
 #RCP85 2070
-rcp85.70.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_85/mod_70_85_tiff_gl", 
+rcp85.70.list=list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/mod_70_85_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp85.70=stack(rcp85.70.list)
 
 #great lakes current
-gl.current.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tiff_gl_old",
+gl.current.list=list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/tiff_gl_old",
                            pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
-glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
+glb<-readOGR("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/glin_gl_mainlakes/gl_mainlakes.shp")
+
 
 #bring in coordinates of species of interest
-species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
+species<-list.files(path="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/global_training",
                     pattern="train_", full.names=TRUE)
-#species.test<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/testing/global_test",
-#                         pattern="test_", full.names=TRUE)
+
 
 #my.data<-lapply(species, read.csv, header=TRUE)
 for(i in 1:length(species)){
-  sp.coords.train<-read.csv(species[i], header=TRUE)
+  sp.coords.train<-read.csv(species[14], header=TRUE)
   #my.name<-names(sp.coords.train)[1]
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
-                basename(species[i]))
+                basename(species[14]))
   filename<-sapply(strsplit(filename, "train_"), "[[",-1) 
   sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
   assign(paste(filename),sp.coords.train)
-  form1=sprintf('E:/BrokenHardDrive/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
+  form1=sprintf('/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/global_test/test_%s.csv', filename)
   sp.coords.test<-read.csv(file=form1)
   sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
   assign(paste(filename, "_test"),sp.coords.test)
-  form_bg_train<-sprintf("E:/BrokenHardDrive/postdoc/analysis_files/train_background/%s.csv", filename)
+  form_bg_train<-sprintf("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/%s.csv", filename)
   backg_train<-read.csv(file=form_bg_train)
   backg_train<-backg_train[,c("Longitude","Latitude")]
   assign(paste(filename,"_bg_train"), backg_train)
-  form_bg_test<-sprintf("E:/BrokenHardDrive/postdoc/analysis_files/test_background/%s.csv", filename)
+  form_bg_test<-sprintf("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/%s.csv", filename)
   backg_test<-read.csv(file=form_bg_test)
   backg_test<-backg_test[,c("Longitude","Latitude")]
   assign(paste(filename,"_bg_test"), backg_test)
@@ -71,25 +73,25 @@ for(i in 1:length(species)){
 
 putLocalWorkspace()
 for(i in 1:length(species)){
-  #sp.coords.train<-read.csv(species[i], header=TRUE)
-  #filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
-  #              basename(species[2]))
-  #filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
-  #form1=sprintf('E:/BrokenHardDrive/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
-  #sp.coords.test<-read.csv(file=form1)
-  #filename<-sub(pattern="_", replacement =" ", 
-  #                basename(filename))
-#  
- # sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
-  #sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
+  sp.coords.train<-read.csv(species[14], header=TRUE)
+  filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
+                basename(species[14]))
+  filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
+  form1=sprintf('/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/global_test/test_%s.csv', filename)
+  sp.coords.test<-read.csv(file=form1)
+  filename<-sub(pattern="_", replacement =" ", 
+                  basename(filename))
+  
+  sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
+  sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
   
   #get background training and testing data points
-  #form_bg_train<-sprintf("E:/BrokenHardDrive/postdoc/analysis_files/train_background/%s.csv", filename)
-  #backg_train<-read.csv(file=form_bg_train)
-  #backg_train<-backg_train[,c("Longitude","Latitude")]
-  #form_bg_test<-sprintf("E:/BrokenHardDrive/postdoc/analysis_files/test_background/%s.csv", filename)
-  #backg_test<-read.csv(file=form_bg_test)
-  #backg_test<-backg_test[,c("Longitude","Latitude")]
+  form_bg_train<-sprintf("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/train_background/%s.csv", filename)
+  backg_train<-read.csv(file=form_bg_train)
+  backg_train<-backg_train[,c("Longitude","Latitude")]
+  form_bg_test<-sprintf("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/test_background/%s.csv", filename)
+  backg_test<-read.csv(file=form_bg_test)
+  backg_test<-backg_test[,c("Longitude","Latitude")]
   
   
   #create data frame with presence and background training scores and environmental data
@@ -131,8 +133,9 @@ for(i in 1:length(species)){
   predict_test=predict(sp.tc5.lr01.train,envtest, 
                        n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                        type="response")
-  
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_global_", filename, ".png"))
+  colfun<-colorRampPalette(
+    c("blue","cyan","green","yellow","red"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/current_global/current_global_", filename, ".png"))
   current.plot<-levelplot(sp.tc5.lr01.train, 
                           main=paste(filename, "global model"), 
                           xlim=c(-95,-70), ylim=c(40,52),
@@ -173,36 +176,36 @@ for(i in 1:length(species)){
   TSS<-data.frame(TSS)
   TSS$sp<-filename
   write.table(TSS,
-              file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_TSS/TSS.csv",
+              file="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/BRT_TSS/TSS.csv",
               append=T, sep=",", row.names=F, col.names = F)
   sensitivity<-data.frame(sensitivity)
   sensitivity$sp<-filename
   write.table(sensitivity,
-              file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_sensitivity/sensitivity.csv",
+              file="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/BRT_sensitivity/sensitivity.csv",
               append=T, sep=",", row.names=F, col.names = F)
   specificity<-data.frame(specificity)
   specificity$sp<-filename
   write.table(specificity,
-              file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_specificity/specificity.csv",
+              file="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/BRT_specificity/specificity.csv",
               append=T, sep=",", row.names=F, col.names = F)
   tr<-data.frame(tr)
   tr$sp<-filename
   write.table(tr,
-              file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_threshold/threshold.csv",
+              file="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/BRT_threshold/threshold.csv",
               append=T, sep=",", row.names=F, col.names = F)
   auc<-data.frame(e@auc)
   auc$sp<-filename
   write.table(auc,
-              file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_auc/auc.csv",
+              file="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297//BRT_auc/auc.csv",
               append=T, sep=",", row.names=F, col.names = F)
   trees<-sp.tc5.lr01.train$gbm.call$best.trees 
   trees$sp<-filename
   write.table(trees,
-              file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_trees/trees.csv",
+              file="/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/BRT_trees/trees.csv",
               append=T, sep=",", row.names=F, col.names = F)
   colfun<-colorRampPalette(
     c("blue","cyan","green","yellow","red"))
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_", filename, ".png"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/current_global/current_", filename, ".png"))
   current.plot<-levelplot(current.predict, 
                           main=paste(filename, "current_global"), 
                           xlim=c(-95,-70), ylim=c(40,52),
@@ -221,7 +224,7 @@ for(i in 1:length(species)){
   
   colfun<-colorRampPalette(
     c("blue","cyan","green","yellow","red"))
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current/current_", filename, ".png"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/current/current_", filename, ".png"))
   current.plot<-levelplot(current.predict, 
                           main=paste(filename, "current"), 
                           xlim=c(-95,-70), ylim=c(40,52),
@@ -238,7 +241,7 @@ for(i in 1:length(species)){
                             n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                             type="response")
   
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/4550/4550_", filename, ".png"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/4550/4550_", filename, ".png"))
   plot.4550<-levelplot(rcp45.50.predict, 
                        main=paste(filename, "RCP 4.5 2050"), 
                        xlim=c(-95,-70), ylim=c(40,52),
@@ -255,7 +258,7 @@ for(i in 1:length(species)){
                             n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                             type="response")
   
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/4570/4570_", filename, ".png"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/4570/4570_", filename, ".png"))
   plot.4570<-levelplot(rcp45.70.predict, 
                        main=paste(filename, "RCP 4.5 2070"), 
                        xlim=c(-95,-70), ylim=c(40,52),
@@ -272,7 +275,7 @@ for(i in 1:length(species)){
                             n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                             type="response")
   
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/8550/8550_", filename, ".png"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/8550/8550_", filename, ".png"))
   plot.8550<-levelplot(rcp85.50.predict, 
                        main=paste(filename, "RCP 8.5 2050"), 
                        xlim=c(-95,-70), ylim=c(40,52),
@@ -289,7 +292,7 @@ for(i in 1:length(species)){
                             n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                             type="response")
   
-  png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/8570/8570_", filename, ".png"))
+  png(paste0("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn41297/png_files/8570/8570_", filename, ".png"))
   plot.8570<-levelplot(rcp85.70.predict, 
                        main=paste(filename, "RCP 8.5 2070"), 
                        xlim=c(-95,-70), ylim=c(40,52),
