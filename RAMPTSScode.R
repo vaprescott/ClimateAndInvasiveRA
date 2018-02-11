@@ -5,9 +5,9 @@ species<-list.files(path="C:/Users/vprescott/Desktop/RAMP2/global_test_scores/gl
                     pattern="_test_nearest_scores", full.names=TRUE)
 
 for(i in 1:length(species)){
-  test<-read.csv(species[i], header=TRUE)
+  test<-read.csv(species[29], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
-                basename(species[i]))
+                basename(species[29]))
   filename<-sapply(strsplit(filename, "_test_nearest_scores"), "[[",1)  
   form1=sprintf('C:/Users/vprescott/Desktop/RAMP2/global_test_background/global_bg_nearest_scores/%s_bg_nearest_scores.csv', filename)
   bg<-read.csv(file=form1)

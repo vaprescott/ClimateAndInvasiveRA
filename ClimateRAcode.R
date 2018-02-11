@@ -42,7 +42,7 @@ glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
 
-for(i in 1:length(species)){
+for(i in 6:10){
   sp.coords.train<-read.csv(species[i], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
@@ -83,7 +83,7 @@ envtest<-data.frame(cbind(pa=pres_backg_test, test))
 #run a model, lower the learning rate if you get the algorithm warning
 sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
-                                  learning.rate=0.015, bag.fraction=0.5,
+                                  learning.rate=0.01, bag.fraction=0.5,
                                   n.folds=5)
 ##TRY TO PLOT SP.TC5.LR01.TRAIN
 
@@ -101,17 +101,17 @@ predict_test=predict(sp.tc5.lr01.train,envtest,
                      n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                      type="response")
 
-png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_global_", filename, ".png"))
-current.plot<-levelplot(sp.tc5.lr01.train, 
-                        main=paste(filename, "global model"), 
-                        xlim=c(-95,-70), ylim=c(40,52),
-                        at=seq(0,1, length.out=1000),
-                        col.regions=colfun,
-                        margin=F,
-                        maxpixels=13000000)
+#png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_global_", filename, ".png"))
+#current.plot<-levelplot(sp.tc5.lr01.train, 
+#                        main=paste(filename, "global model"), 
+#                        xlim=c(-95,-70), ylim=c(40,52),
+#                        at=seq(0,1, length.out=1000),
+#                        col.regions=colfun,
+#                        margin=F,
+#                        maxpixels=13000000)
 
-print(current.plot)
-dev.off()
+#print(current.plot)
+#dev.off()
 
 ##TRY TO PLOT PREDICT_TEST
 calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
@@ -142,45 +142,34 @@ TSS<-sensitivity + specificity - 1
 TSS<-data.frame(TSS)
 TSS$sp<-filename
 write.table(TSS,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_TSS/TSS.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/BRT_TSS/TSS.csv",
             append=T, sep=",", row.names=F, col.names = F)
 sensitivity<-data.frame(sensitivity)
 sensitivity$sp<-filename
 write.table(sensitivity,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_sensitivity/sensitivity.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/BRT_sensitivity/sensitivity.csv",
             append=T, sep=",", row.names=F, col.names = F)
 specificity<-data.frame(specificity)
 specificity$sp<-filename
 write.table(specificity,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_specificity/specificity.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/BRT_specificity/specificity.csv",
             append=T, sep=",", row.names=F, col.names = F)
 tr<-data.frame(tr)
 tr$sp<-filename
 write.table(tr,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_threshold/threshold.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/BRT_threshold/threshold.csv",
             append=T, sep=",", row.names=F, col.names = F)
 auc<-data.frame(e@auc)
 auc$sp<-filename
 write.table(auc,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_auc/auc.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/BRT_auc/auc.csv",
             append=T, sep=",", row.names=F, col.names = F)
 trees<-sp.tc5.lr01.train$gbm.call$best.trees 
 trees$sp<-filename
 write.table(trees,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/BRT_trees/trees.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/BRT_trees/trees.csv",
             append=T, sep=",", row.names=F, col.names = F)
-colfun<-colorRampPalette(
-  c("blue","cyan","green","yellow","red"))
-png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_", filename, ".png"))
-current.plot<-levelplot(current.predict, 
-                        main=paste(filename, "current_global"), 
-                        xlim=c(-95,-70), ylim=c(40,52),
-                        at=seq(0,1, length.out=1000),
-                        col.regions=colfun,
-                        margin=F,
-                        maxpixels=13000000) +
-  #layer(sp.polygons(glb))
-print(current.plot)
+
 # compare climate at gps points to the great lakes
 #Takes about 5 hours to run
 #save a png of the plot
