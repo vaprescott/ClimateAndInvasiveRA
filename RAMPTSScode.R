@@ -34,27 +34,27 @@ TSS<-sensitivity + specificity - 1
 TSS<-data.frame(TSS)
 TSS$sp<-filename
 write.table(TSS,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_TSS/TSS.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/RAMP_TSS/TSS.csv",
             append=T, sep=",", row.names=F, col.names = F)
 sensitivity<-data.frame(sensitivity)
 sensitivity$sp<-filename
 write.table(sensitivity,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_sensitivity/sensitivity.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/RAMP_sensitivity/sensitivity.csv",
             append=T, sep=",", row.names=F, col.names = F)
 specificity<-data.frame(specificity)
 specificity$sp<-filename
 write.table(specificity,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_specificity/specificity.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/RAMP_specificity/specificity.csv",
             append=T, sep=",", row.names=F, col.names = F)
 tr<-data.frame(tr)
 tr$sp<-filename
 write.table(tr,
-            file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_threshold/threshold.csv",
+            file="E:/BrokenHardDrive/postdoc/analysis_files/RAMP_threshold/threshold.csv",
             append=T, sep=",", row.names=F, col.names = F)
 auc<-data.frame(e@auc)
 auc$sp<-filename
 write.table(auc,
-           file="D:/BrokenHardDrive/postdoc/analysis_files/RAMP_auc/auc.csv",
+           file="E:/BrokenHardDrive/postdoc/analysis_files/RAMP_auc/auc.csv",
            append=T, sep=",", row.names=F, col.names = F)
 }
 

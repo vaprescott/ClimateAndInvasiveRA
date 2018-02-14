@@ -42,8 +42,8 @@ glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
 
-for(i in 6:10){
-  sp.coords.train<-read.csv(species[i], header=TRUE)
+for(i in 28:29){
+ sp.coords.train<-read.csv(species[i], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
   filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
@@ -95,6 +95,15 @@ if (sp.tc5.lr01.train$gbm.call$best.trees > 1000) {
                                     family="bernoulli", tree.complexity = 5,
                                     learning.rate=0.005, bag.fraction=0.5,
                                     n.folds=5)}
+
+if (sp.tc5.lr01.train$gbm.call$best.trees < 3000) {
+  
+} else {
+  sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+                              family="bernoulli", tree.complexity = 5,
+                              learning.rate=0.02, bag.fraction=0.5,
+                              n.folds=5)}
+
 
 #determine how well the test data does with this model
 predict_test=predict(sp.tc5.lr01.train,envtest, 
@@ -260,14 +269,6 @@ print(plot.8570)
 dev.off()
 }
 
-#create animation of 2050 and 2070 
-test<-stack(current.predict,rcp45.50.predict, rcp85.50.predict, rcp85.70.predict)
-animation<-animate(test, pause=2, n=100, 
-                   xlim=c(-95,-70), 
-                   ylim=c(40,52),
-                   col=colors,
-                   breaks=breakpoints,
-                   maxpixels=15000000)
 
 
 #get full set of coords to get number of random background points
