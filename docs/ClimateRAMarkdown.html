@@ -162,14 +162,14 @@ rcp85.70.list=list.files(path=&quot;/postdoc/Bioclim/Mod_WorldClim/Modlayers_207
 rcp85.70=stack(rcp85.70.list)
 
 #great lakes current
-gl.current.list=list.files(path=&quot;E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tiff_gl_old&quot;,
+gl.current.list=list.files(path=&quot;/postdoc/Bioclim/WorldClim/Current/tiff_gl_old&quot;,
                            pattern=&quot;tif$&quot;, full.names=TRUE)
 gl.current=stack(gl.current.list)
 
 #outline of great lakes basin
 glb&lt;-readOGR(&quot;/postdoc/glin_gl_mainlakes/gl_mainlakes.shp&quot;)</code></pre>
 <pre class="r"><code>#bring in coordinates of species of interest
-species&lt;-list.files(path=&quot;E:/BrokenHardDrive/postdoc/analysis_files/training/global_training&quot;,
+species&lt;-list.files(path=&quot;/postdoc/analysis_files/training/global_training&quot;,
                     pattern=&quot;train_&quot;, full.names=TRUE)</code></pre>
 <pre class="r"><code>#create training and test data for species presence
 set.seed(0)
