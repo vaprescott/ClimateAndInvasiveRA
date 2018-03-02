@@ -4,78 +4,115 @@ library("maps", lib.loc="~/R/win-library/3.4")
 library("mapdata", lib.loc="~/R/win-library/3.4")
 library("maptools", lib.loc="~/R/win-library/3.4")
 library("rgdal", lib.loc="~/R/win-library/3.4")
-#library("RPostgreSQL", lib.loc="~/R/win-library/3.4")
 library("raster", lib.loc="~/R/win-library/3.4")
 library("rasterVis", lib.loc="~/R/win-library/3.4")
 
+library("dismo")
+library("gbm")
+library("maps")
+library("mapdata")
+library("maptools")
+library("rgdal")
+library("raster")
+library("rasterVis")
+library('tiff')
+
+
 #bring in tiff files for climate data and put them into one rasterstack
-current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tif_files", 
+current.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tif_files", 
                         pattern="tif$", full.names=TRUE )
 current=stack(current.list)
-current<-is.raster(current)
+
 #RCP 45 2050
-rcp45.50.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_45/mod_50_45_tiff_gl", 
+rcp45.50.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_45/mod_50_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.50=stack(rcp45.50.list)
+
 #RCP 45 2070
-rcp45.70.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_45/mod_70_45_tiff_gl", 
+rcp45.70.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_45/mod_70_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.70=stack(rcp45.70.list)
+
 #RCP85 2050
-rcp85.50.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_85/mod_50_85_tiff_gl", 
+rcp85.50.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_85/mod_50_85_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp85.50=stack(rcp85.50.list)
+
 #RCP85 2070
-rcp85.70.list=list.files(path="E:/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_85/mod_70_85_tiff_gl", 
+rcp85.70.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_85/mod_70_85_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
-rcp85.70=stack(rcp45.70.list)
-#great lakes region
-gl.current.list=list.files(path="E:/postdoc/Bioclim/WorldClim/Current/tiff_gl",
+rcp85.70=stack(rcp85.70.list)
+
+#great lakes current
+gl.current.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tiff_gl_old",
                            pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
-gl.current<-is.raster(gl.current)
-glb<-readOGR("E:/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
+glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
+
 
 #bring in coordinates of species of interest
-species<-list.files(path="C:/Users/vprescott/Desktop/RAMP2/Full_coords",
-                    pattern="csv", full.names=TRUE)
+#species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/sp_coords/corrected_coords",
+#                    pattern="_corrected2.csv", full.names=TRUE)
 
-sp.coords<-read.csv(species[i], header=TRUE)
-filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
-              basename(species[i]))
-filename<-sub(pattern="_", replacement =" ", 
-              basename(filename))
-filename<-sapply(strsplit(filename, "_full2"), "[[",1)  
-sp.coords<-sp.coords[,c("longitude","latitude")]
-projection(sp.coords)<-"+proj=longlat +ellps=WGS84 +datum=WGS84"
+#sp.coords<-read.csv(species[i], header=TRUE)
+#filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
+#              basename(species[i]))
+#filename<-sub(pattern="_", replacement =" ", 
+#              basename(filename))
+#filename<-sapply(strsplit(filename, "_corrected2"), "[[",1)  
+#sp.coords<-sp.coords[,c("longitude","latitude")]
+#projection(sp.coords)<-"+proj=longlat +ellps=WGS84 +datum=WGS84"
 
-#create presence training and test data
-set.seed(0)
-group=kfold(sp.coords, 5)
-pres_train=sp.coords[group!=1,]
-pres_test=sp.coords[group==1,]
+
+species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
+                    pattern="train_", full.names=TRUE)
+for(i in 28:29)
+  sp.coords.train<-read.csv(species[5], header=TRUE)
+  filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
+              basename(species[5]))
+  filename<-sapply(strsplit(filename, "train_"), "[[",-1)     
+  form1=sprintf('E:/BrokenHardDrive/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
+  sp.coords.test<-read.csv(file=form1)
+#filename<-sub(pattern="_", replacement =" ", 
+#                basename(filename))
+
+sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
+sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
+
+pres_train<-sp.coords.train
+pres_test<-sp.coords.test
 
 
 #create background training and test data (in lieu of absence data)
-set.seed(10)
-bias3<-readOGR("E:/postdoc/analysis_files/background/misgu3_MCP/mis_poly_1.shp")
-bias4<-raster('E:/postdoc/analysis_files/background/misgu3_MCP/misguruns_fossilis2.tif')
-ext=extent(bias3)
-backg=randomPoints(current, 
-                   n=nrow(sp.coords),
-                   ext=ext,
-                   extf=1.25)
+  set.seed(10)
+  form_bg_name<-sprintf('E:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif', filename)
+  form_bg_name<-sprintf("/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn31083/Cherax quadricarinatus.tif")
+  background<-raster(form_bg_name)
+  ext=extent(background)
+  crs(background)<-"+proj=longlat +datum=WGS84"
+raster.random.points<-function(size, background, na.rm=TRUE){
+    coords<-matrix(0, nrow=size, ncol=2)
+    coords[,1]<-runif(size, xmin(background), xmax(background))
+    coords[,2] <- runif(size, ymin(background), ymax(background))
+    if (na.rm) {
+      cells <- cellFromXY(background, coords)
+      na.cnt <- length(which(is.na(background[cells])))
+      while (na.cnt > 0){
+        recs <- which(is.na(background[cells]))
+        coords[recs,1] <- runif(length(recs), xmin(background), xmax(background))
+        coords[recs,2] <- runif(length(recs), ymin(background), ymax(background))
+        cells <- cellFromXY(background, coords)
+        na.cnt <- length(which(is.na(background[cells])))
+      }}
+    return(coords)
+  }
+  # now call the function to generate random points
+  coords <- raster.random.points(10000, background)
+backg<-coords
 colnames(backg)=c('Longitude','Latitude')
 group=kfold(backg,5)
-#backg_train=backg[group!=1,]
-#why is that commented out?
+backg_train=backg[group!=1,]
 backg_test=backg[group==1,]
-View(backg_test)
-
-back_points=randomPoints(current, 
-                   n=10000,
-                   ext=ext,
-                   extf=1)
 
 
 #create a raster of rasterstack, showing just first layer and plot to check data
@@ -88,8 +125,8 @@ points(pres_test, pch='+', cex=0.5,col='purple')
 
 #create model
 xm<-maxent(current,p=pres_train,
-           a=back_points,
-           path='E:/postdoc/M.guruns/output',
+           a=backg_train,
+           path='E:/BrokenHardDrive/postdoc/analysis_files/Maxent',
            args=c(
              'removeduplicates=TRUE',
              'outputformat=cumulative',
@@ -97,8 +134,9 @@ xm<-maxent(current,p=pres_train,
             'replicates=5',
              'replicatetype=crossvalidate'
              ))
- #use model on test data
-xm.avg<-read.csv("E:/postdoc/M.guruns/output/species_avg.csv")
+
+#use model on test data
+xm.avg<-read.csv("E:/BrokenHardDrive/postdoc/analysis_files/Maxent/species_avg.csv")
 
 e<-evaluate(model=xm, p=pres_test, a=backg_test, x=current)
 e

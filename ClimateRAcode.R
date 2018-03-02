@@ -42,7 +42,7 @@ glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
 
-for(i in 28:29){
+for(i in 15:20){
  sp.coords.train<-read.csv(species[i], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
@@ -85,7 +85,6 @@ sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
                                   family="bernoulli", tree.complexity = 5,
                                   learning.rate=0.01, bag.fraction=0.5,
                                   n.folds=5)
-##TRY TO PLOT SP.TC5.LR01.TRAIN
 
 #determine best number of trees
 if (sp.tc5.lr01.train$gbm.call$best.trees > 1000) {
@@ -185,7 +184,6 @@ write.table(trees,
 current.predict<-predict(gl.current, sp.tc5.lr01.train,
            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
-
 colfun<-colorRampPalette(
   c("blue","cyan","green","yellow","red"))
 png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current/current_", filename, ".png"))
@@ -267,7 +265,10 @@ plot.8570<-levelplot(rcp85.70.predict,
   layer(sp.polygons(glb))
 print(plot.8570)
 dev.off()
+
+file.remove(rcp45.50.predict)
 }
+
 
 
 

@@ -1,7 +1,7 @@
 ---
-title: "Boosted regressions for examining the effects of climate change on species distributions" 
+title: "Boosted regression trees for examining the effects of climate change on species distributions" 
 author: "Victoria Prescott"
-date: "7/25/2017"
+date: "03/02/2018"
 output: html_document
 ---
 
@@ -14,24 +14,55 @@ knitr::opts_chunk$set(echo = TRUE)
 #http://rspatial.org/sdm/rst/1_sdm_introduction.html
 #https://cran.r-project.org/web/packages/dismo/vignettes/brt.pdf
 #You will need the following packages:
-library("dismo", lib.loc="~/R/library")
-library("gbm", lib.loc="~/R/library")
-library("maps", lib.loc="~/R/library")
-library("mapdata", lib.loc="~/R/library")
-library("maptools", lib.loc="~/R/library")
-library("rgdal", lib.loc="~/R/library")
+library("dismo")
+library("gbm")
+library("maps")
+library("mapdata")
+library("maptools")
+library("rgdal")
+library("raster")
+library("rasterVis")
 ```
 
 ```{r eval=FALSE}
-#upload rasters of current climate variables
-gl.current.list=list.files(path="pathways to files",
-          pattern="tif$", full.names=TRUE)
+#bring in tiff files for climate data and put them into one rasterstack
+current.list=list.files(path="/postdoc/Bioclim/WorldClim/Current/tif_files", 
+                        pattern="tif$", full.names=TRUE )
+current=stack(current.list)
+
+#RCP 45 2050
+rcp45.50.list=list.files(path="/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_45/mod_50_45_tiff_gl", 
+                         pattern="tif$", full.names=TRUE )
+rcp45.50=stack(rcp45.50.list)
+
+#RCP 45 2070
+rcp45.70.list=list.files(path="/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_45/mod_70_45_tiff_gl", 
+                         pattern="tif$", full.names=TRUE )
+rcp45.70=stack(rcp45.70.list)
+
+#RCP85 2050
+rcp85.50.list=list.files(path="/postdoc/Bioclim/Mod_WorldClim/Modlayers_2050_85/mod_50_85_tiff_gl", 
+                         pattern="tif$", full.names=TRUE )
+rcp85.50=stack(rcp85.50.list)
+
+#RCP85 2070
+rcp85.70.list=list.files(path="/postdoc/Bioclim/Mod_WorldClim/Modlayers_2070_85/mod_70_85_tiff_gl", 
+                         pattern="tif$", full.names=TRUE )
+rcp85.70=stack(rcp85.70.list)
+
+#great lakes current
+gl.current.list=list.files(path="E:/BrokenHardDrive/postdoc/Bioclim/WorldClim/Current/tiff_gl_old",
+                           pattern="tif$", full.names=TRUE)
 gl.current=stack(gl.current.list)
+
+#outline of great lakes basin
+glb<-readOGR("/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 ```
 
 ```{r eval=FALSE}
 #bring in coordinates of species of interest
-a.torren.coords <- read.csv("pathways to files")
+species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
+                    pattern="train_", full.names=TRUE)
 ```
 
 ```{r eval=FALSE}
@@ -43,14 +74,30 @@ pres_test=a.torren.coords[group==1,]
 ```
 
 ```{r eval=FALSE}
-#create background training and test data (in lieu of absence data)
-set.seed(10)
-ext=extent(6,16,46,50)
-backg=randomPoints(current, n=500,ext=ext, extf=1.25)
-colnames(backg)=c('Longitude','Latitude')
-group=kfold(backg,5)
-backg_train=backg[group!=1,]
-backg_test=backg[group==1,]
+#ALL models will be created in a for loop, using the training files in the 'species' list as a guide
+for(i in 1:length(species)){
+#get training coordinates of first species and get just the species name from the file
+#species name will be used to get testing file
+sp.coords.train<-read.csv(species[i], header=TRUE)
+filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
+                basename(species[i]))
+filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
+form1=sprintf('/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
+sp.coords.test<-read.csv(file=form1)
+
+#remove column that has species name
+sp.coords.train<-sp.coords.train[,c("Longitude","Latitude")]
+sp.coords.test<-sp.coords.test[,c("Longitude","Latitude")]
+```
+
+```{r eval=FALSE}
+#get background training and testing data points
+form_bg_train<-sprintf("/postdoc/analysis_files/train_background/%s.csv", filename)
+backg_train<-read.csv(file=form_bg_train)
+backg_train<-backg_train[,c("Longitude","Latitude")]
+form_bg_test<-sprintf("/postdoc/analysis_files/test_background/%s.csv", filename)
+backg_test<-read.csv(file=form_bg_test)
+backg_test<-backg_test[,c("Longitude","Latitude")]
 ```
 
 ```{r eval=FALSE}
@@ -87,76 +134,172 @@ envtest<-data.frame(cbind(pa=pres_backg_test, test))
 
 ```{r eval=FALSE}
 #run a model, lower the learning rate if you get the algorithm warning
-#aim for 1000 trees
-a.torren.tc5.lr001.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
-                                 family="bernoulli", tree.complexity = 5,
-                                  learning.rate=0.001, bag.fraction=0.5)
+sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+                                  family="bernoulli", tree.complexity = 5,
+                                  learning.rate=0.01, bag.fraction=0.5,
+                                  n.folds=5)
+
+#determine best number of trees
+if (sp.tc5.lr01.train$gbm.call$best.trees > 1000) {
+  
+} else {
+  sp.tc5.lr01.train<-gbm.step(data=envtrain, gbm.x=2:20, gbm.y=1,
+                                    family="bernoulli", tree.complexity = 5,
+                                    learning.rate=0.005, bag.fraction=0.5,
+                                    n.folds=5)}
 ```
 
 ```{r eval=FALSE}
+
 #determine how well the test data does with this model
-pr=predict(a.torren.tc5.lr001.train,envtest, 
-           n.trees=a.torren.tc5.lr001.train$gbm.call$best.trees,
-           type="response")
-calc.deviance(obs=envtest$pa, pred=pr, calc.mean = TRUE)
-d<-cbind(envtest$pa, pr)
+predict_test=predict(sp.tc5.lr01.train,envtest, 
+                     n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
+                     type="response")
+
+calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
+d<-cbind(envtest$pa, predict_test)
 pres<-d[d[,1]==1,2]
 abs<-d[d[,1]==0,2]
 e<-evaluate(p=pres, a=abs)
 e
-threshold(e)
-sensitivity<-sum(pres>=0.7156226)/length(pres) 
-  #use the desired threshold value from previous step
-specificity<-sum(abs<0.7156226)/length(abs)
-sensitivity
-specificity
+#set threshold so that there is equal specificity and sensitivity
+tr<-threshold(e, "equal_sens_spec")
+sensitivity<-sum(pres>=tr)/length(pres) 
+specificity<-sum(abs<tr)/length(abs)
+TSS<-sensitivity + specificity - 1
+
+#save calculated values
+TSS<-data.frame(TSS)
+TSS$sp<-filename
+write.table(TSS,
+            file="/postdoc/analysis_files/BRT_TSS/TSS.csv",
+            append=T, sep=",", row.names=F, col.names = F)
+
+sensitivity<-data.frame(sensitivity)
+sensitivity$sp<-filename
+write.table(sensitivity,
+            file="/postdoc/analysis_files/BRT_sensitivity/sensitivity.csv",
+            append=T, sep=",", row.names=F, col.names = F)
+
+specificity<-data.frame(specificity)
+specificity$sp<-filename
+write.table(specificity,
+            file="/postdoc/analysis_files/BRT_specificity/specificity.csv",
+            append=T, sep=",", row.names=F, col.names = F)
+
+tr<-data.frame(tr)
+tr$sp<-filename
+write.table(tr,
+            file="/postdoc/analysis_files/BRT_threshold/threshold.csv",
+            append=T, sep=",", row.names=F, col.names = F)
+
+auc<-data.frame(e@auc)
+auc$sp<-filename
+write.table(auc,
+            file="/postdoc/analysis_files/BRT_auc/auc.csv",
+            append=T, sep=",", row.names=F, col.names = F)
+
+trees<-sp.tc5.lr01.train$gbm.call$best.trees 
+trees$sp<-filename
+write.table(trees,
+            file="/postdoc/analysis_files/BRT_trees/trees.csv",
+            append=T, sep=",", row.names=F, col.names = F)
+
 ```
 
 ```{r eval=FALSE}
 #this next step takes quite a while to run
 #run the model across the great lakes (compare climate at gps points to the great lakes region)
-predict_current<-predict(gl.current, a.torren.tc5.lr01.train,
-           n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+current.predict<-predict(gl.current, sp.tc5.lr01.train,
+           n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
            type="response")
+
+#save a png of the plot
+colfun<-colorRampPalette(
+  c("blue","cyan","green","yellow","red"))
+png(paste0("/postdoc/analysis_files/png_files/current/current_", filename, ".png"))
+current.plot<-levelplot(current.predict, 
+          main=paste(filename, "current"), 
+          xlim=c(-95,-70), ylim=c(40,52),
+          at=seq(0,1, length.out=1000),
+          col.regions=colfun,
+          margin=F,
+          maxpixels=13000000) +
+  layer(sp.polygons(glb))
+print(current.plot)
+dev.off()
 ```
 
 ```{r eval=FALSE}
-#plot map
-predict_current_mask=mask(predict_current, raster(current,1))
-plot(p, main="A. torren-BRT prediction")
-plot(predict_current, main="A. torren, current", 
-     xlim=c(-95,-70), ylim=c(40,52))
-```
-
-```{r eval=FALSE}
-#bring in rasters for future climate change projections
-#use future projection RCP 45 2050 (compare climate at gps points to the great lakes region for the year 2050 with intermediate climate change levels)
-rcp45.50.list=list.files(path="path to files", 
-                         pattern="tif$", full.names=TRUE )
-rcp45.50=stack(rcp45.50.list)
-```
-
-```{r eval=FALSE}
-#Once again, the next step takes hours to run
-predict_RCP45_50<-predict(rcp45.50, a.torren.tc5.lr01.train,
-            n.trees=a.torren.tc5.lr01.train$gbm.call$best.trees,
+#repeat for intermediate climate change in 2050
+rcp45.50.predict<-predict(rcp45.50,sp.tc5.lr01.train,
+            n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
             type="response")
-predict_RCP45_50_cropped<-crop(predict_RCP45_50,cropped)
-predict_RCP45_50_mask<-mask(predict_RCP45_50_cropped,cropped)
-plot(predict_RCP45_50_mask, 
-     xlim=c(-180,-20), ylim=c(10,90),
-     main="ADD TITLE")
+
+png(paste0("/postdoc/analysis_files/png_files/4550/4550_", filename, ".png"))
+plot.4550<-levelplot(rcp45.50.predict, 
+          main=paste(filename, "RCP 4.5 2050"), 
+          xlim=c(-95,-70), ylim=c(40,52),
+          at=seq(0,1, length.out=1100),
+          col.regions=colfun,
+          margin=F,
+          maxpixels=15000000) +
+  layer(sp.polygons(glb))
+print(plot.4550)
+dev.off()
+
+#repeat for intermediate climate change in 2070
+rcp45.70.predict<-predict(rcp45.70, sp.tc5.lr01.train,
+                         n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
+                         type="response")
+
+png(paste0("/postdoc/analysis_files/png_files/4570/4570_", filename, ".png"))
+plot.4570<-levelplot(rcp45.70.predict, 
+          main=paste(filename, "RCP 4.5 2070"), 
+          xlim=c(-95,-70), ylim=c(40,52),
+          at=seq(0,1, length.out=1000),
+          col.regions=colfun,
+          margin=F,
+          maxpixels=15000000) +
+  layer(sp.polygons(glb))
+print(plot.4570)
+dev.off()
+
+#repeat for high climate change in 2050
+rcp85.50.predict<-predict(rcp85.50, sp.tc5.lr01.train,
+                         n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
+                         type="response")
+
+png(paste0("/postdoc/analysis_files/png_files/8550/8550_", filename, ".png"))
+plot.8550<-levelplot(rcp85.50.predict, 
+          main=paste(filename, "RCP 8.5 2050"), 
+          xlim=c(-95,-70), ylim=c(40,52),
+          at=seq(0,1, length.out=1100),
+          col.regions=colfun,
+          margin=F,
+          maxpixels=15000000) +
+  layer(sp.polygons(glb))
+print(plot.8550)
+dev.off()
+
+#repeat for high climate change in 2070
+rcp85.70.predict<-predict(rcp85.70, sp.tc5.lr01.train,
+                         n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
+                         type="response")
+
+png(paste0("/postdoc/analysis_files/png_files/8570/8570_", filename, ".png"))
+plot.8570<-levelplot(rcp85.70.predict, 
+          main=paste(filename, "RCP 8.5 2070"), 
+          xlim=c(-95,-70), ylim=c(40,52),
+          at=seq(0,1, length.out=1100),
+          col.regions=colfun,
+          margin=F,
+          maxpixels=15000000) +
+  layer(sp.polygons(glb))
+print(plot.8570)
+dev.off()
+
+}
+
 ```
 
-```{r eval=FALSE}
-#change colors in map to match MaxEnt and RAMP
-colors<-c("blue","lightblue"," green", "yellow", "red")
-text(cex.main=1.25,add=TURE)
-test<-stack(r3,rcp45.70_mask)
-animation<-animate(test, pause=1, n=100, 
-                   xlim=c(-180,-20), 
-                   ylim=c(10,90), 
-                   col=colors,
-                   maxpixels=5000
-```
- 
