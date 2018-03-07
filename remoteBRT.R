@@ -25,40 +25,40 @@ library("ClusterR")
 #library("rasterVis")
 
 #bring in tiff files for climate data and put them into one rasterstack
-current.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/tif_files", 
+current.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/tif_files", 
                         pattern="tif$", full.names=TRUE )
 current=stack(current.list)
 
 #RCP 45 2050
-rcp45.50.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/mod_50_45_tiff_gl", 
+rcp45.50.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/mod_50_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.50=stack(rcp45.50.list)
 
 #RCP 45 2070
-rcp45.70.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/mod_70_45_tiff_gl", 
+rcp45.70.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/mod_70_45_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp45.70=stack(rcp45.70.list)
 
 #RCP85 2050
-rcp85.50.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/mod_50_85_tiff_gl", 
+rcp85.50.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/mod_50_85_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp85.50=stack(rcp85.50.list)
 
 #RCP85 2070
-rcp85.70.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/mod_70_85_tiff_gl", 
+rcp85.70.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/mod_70_85_tiff_gl", 
                          pattern="tif$", full.names=TRUE )
 rcp85.70=stack(rcp85.70.list)
 
 #great lakes current
-gl.current.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/tiff_gl_old",
+gl.current.list=list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/tiff_gl_old",
                           pattern="tif$", full.names=TRUE)
 
 gl.current=stack(gl.current.list)
-glb<-readOGR("C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804glin_gl_mainlakes/gl_mainlakes.shp")
+glb<-readOGR("C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/glin_gl_mainlakes/gl_mainlakes.shp")
 
 
 #bring in coordinates of species of interest
-species<-list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/global_training",
+species<-list.files(path="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/global_training",
                     pattern="train_", full.names=TRUE)
 
 for(i in 1:length(species)){
@@ -67,7 +67,7 @@ for(i in 1:length(species)){
                 basename(species[15]))
   filename<-sapply(strsplit(filename, "train_"), "[[",-1)  
   #form1=sprintf('/usr/lib64/microsoft-r/rserver/o16n/9.1.0/rserve/workdir/Rserv9.1.0/conn28221/global_test/test_%s.csv', filename)
-  form1=sprintf('C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/global_test/test_%s.csv', filename)
+  form1=sprintf('C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/global_test/test_%s.csv', filename)
   sp.coords.test<-read.csv(file=form1)
   #filename<-sub(pattern="_", replacement =" ", 
    #               basename(filename))
@@ -83,10 +83,10 @@ for(i in 1:length(species)){
   #backg_test<-read.csv(file=form_bg_test)
   #backg_test<-backg_test[,c("Longitude","Latitude")]
   
-  form_bg_train<-sprintf("C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/train_background/%s.csv", filename)
+  form_bg_train<-sprintf("C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/train_background/%s.csv", filename)
   backg_train<-read.csv(file=form_bg_train)
   backg_train<-backg_train[,c("Longitude","Latitude")]
-  form_bg_test<-sprintf("C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/test_background/%s.csv", filename)
+  form_bg_test<-sprintf("C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/test_background/%s.csv", filename)
   backg_test<-read.csv(file=form_bg_test)
   backg_test<-backg_test[,c("Longitude","Latitude")]
   
@@ -159,32 +159,32 @@ for(i in 1:length(species)){
   TSS<-data.frame(TSS)
   TSS$sp<-filename
   write.table(TSS,
-              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/TSS.csv",
+              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/TSS.csv",
               append=T, sep=",", row.names=F, col.names = F)
   sensitivity<-data.frame(sensitivity)
   sensitivity$sp<-filename
   write.table(sensitivity,
-              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/sensitivity.csv",
+              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/sensitivity.csv",
               append=T, sep=",", row.names=F, col.names = F)
   specificity<-data.frame(specificity)
   specificity$sp<-filename
   write.table(specificity,
-              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/specificity.csv",
+              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/specificity.csv",
               append=T, sep=",", row.names=F, col.names = F)
   tr<-data.frame(tr)
   tr$sp<-filename
   write.table(tr,
-              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/threshold.csv",
+              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/threshold.csv",
               append=T, sep=",", row.names=F, col.names = F)
   auc<-data.frame(e@auc)
   auc$sp<-filename
   write.table(auc,
-              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/auc.csv",
+              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/auc.csv",
               append=T, sep=",", row.names=F, col.names = F)
   trees<-sp.tc5.lr01.train$gbm.call$best.trees 
   trees$sp<-filename
   write.table(trees,
-              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn5804/trees.csv",
+              file="C:/Program Files/Microsoft/ML Server/R_SERVER/o16n/rserve/workdir/conn7684/trees.csv",
               append=T, sep=",", row.names=F, col.names = F)
  
 

@@ -42,7 +42,7 @@ glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
 
-for(i in 15:20){
+for(i in 2){
  sp.coords.train<-read.csv(species[i], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
@@ -122,7 +122,7 @@ predict_test=predict(sp.tc5.lr01.train,envtest,
 #dev.off()
 
 ##TRY TO PLOT PREDICT_TEST
-calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
+#calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
 d<-cbind(envtest$pa, predict_test)
 pres<-d[d[,1]==1,2]
 abs<-d[d[,1]==0,2]
@@ -130,22 +130,13 @@ e<-evaluate(p=pres, a=abs)
 e
 threshold(e)
 tr<-threshold(e, "equal_sens_spec")
-#form=sprintf('E:/postdoc/analysis_files/threshold/threshold_%s.csv',filename)
-#write.csv(tr,
-#          file=form)
+
 sensitivity<-sum(pres>=tr)/length(pres) 
   #use the desired threshold value from previous step
 specificity<-sum(abs<tr)/length(abs)
-#form1=sprintf('E:/postdoc/sensitivity/sensitivity_%s.csv',filename)
-#write.csv(sensitivity,
-#          file=form1 )
-#form2<-sprintf('E:/postdoc/analysis_files/specificity/specificity_%s.csv',filename)
-#write.csv(specificity,
-#          file=form2)
+
 TSS<-sensitivity + specificity - 1
-#form3<-sprintf('E:/postdoc/analysis_files/TSS/TSS_%s.csv', filename)
-#write.csv(TSS,
-#          file=form3)
+
 
 TSS<-data.frame(TSS)
 TSS$sp<-filename
@@ -266,7 +257,7 @@ plot.8570<-levelplot(rcp85.70.predict,
 print(plot.8570)
 dev.off()
 
-file.remove(rcp45.50.predict)
+removeTmpFiles(h=1)
 }
 
 
@@ -293,7 +284,7 @@ file.remove(rcp45.50.predict)
 
 #create background training and test data (in lieu of absence data)
 #set.seed(10)
-#form_backg=sprintf("D:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif", filename)
+#form_backg=sprintf("E:/BrokenHardDrive/postdoc/analysis_files/background_raster/%s.tif", filename)
 #background=raster(form_backg)
 #ext=extent(background)
 #crs(background)<-"+proj=longlat +datum=WGS84"
@@ -311,11 +302,11 @@ file.remove(rcp45.50.predict)
 #      coords[recs,2] <- runif(length(recs), ymin(background), ymax(background))
 #      cells <- cellFromXY(background, coords)
 #      na.cnt <- length(which(is.na(background[cells])))
-#    }}
+ #   }}
 #  return(coords)
 #}
 # now call the function to generate random points
-#coords <- raster.random.points(nrow(sp.coords.full), background)
+#system.time(coords <- raster.random.points(10, background))
 
 # plot the raster and the random points
 #plot(background)
