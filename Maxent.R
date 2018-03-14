@@ -1,12 +1,3 @@
-library("dismo", lib.loc="~/R/win-library/3.4")
-library("gbm", lib.loc="~/R/win-library/3.4")
-library("maps", lib.loc="~/R/win-library/3.4")
-library("mapdata", lib.loc="~/R/win-library/3.4")
-library("maptools", lib.loc="~/R/win-library/3.4")
-library("rgdal", lib.loc="~/R/win-library/3.4")
-library("raster", lib.loc="~/R/win-library/3.4")
-library("rasterVis", lib.loc="~/R/win-library/3.4")
-
 library("dismo")
 library("gbm")
 library("maps")
@@ -15,7 +6,6 @@ library("maptools")
 library("rgdal")
 library("raster")
 library("rasterVis")
-library('tiff')
 
 
 #bring in tiff files for climate data and put them into one rasterstack
@@ -67,9 +57,9 @@ glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
                     pattern="train_", full.names=TRUE)
 for(i in 28:29)
-  sp.coords.train<-read.csv(species[5], header=TRUE)
+  sp.coords.train<-read.csv(species[2], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
-              basename(species[5]))
+              basename(species[2]))
   filename<-sapply(strsplit(filename, "train_"), "[[",-1)     
   form1=sprintf('E:/BrokenHardDrive/postdoc/analysis_files/testing/global_test/test_%s.csv', filename)
   sp.coords.test<-read.csv(file=form1)

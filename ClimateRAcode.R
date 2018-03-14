@@ -39,10 +39,10 @@ gl.current=stack(gl.current.list)
 glb<-readOGR("E:/BrokenHardDrive/postdoc/glin_gl_mainlakes/gl_mainlakes.shp")
 
 #bring in coordinates of species of interest
-species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training",
+species<-list.files(path="E:/BrokenHardDrive/postdoc/analysis_files/training/global_training2",
                     pattern="train_", full.names=TRUE)
 
-for(i in 2){
+for(i in 3:4){
  sp.coords.train<-read.csv(species[i], header=TRUE)
   filename<-sub(pattern = "(.*)\\..*$", replacement = "\\1",
                 basename(species[i]))
@@ -108,18 +108,6 @@ if (sp.tc5.lr01.train$gbm.call$best.trees < 3000) {
 predict_test=predict(sp.tc5.lr01.train,envtest, 
                      n.trees=sp.tc5.lr01.train$gbm.call$best.trees,
                      type="response")
-
-#png(paste0("E:/BrokenHardDrive/postdoc/analysis_files/png_files/current_global/current_global_", filename, ".png"))
-#current.plot<-levelplot(sp.tc5.lr01.train, 
-#                        main=paste(filename, "global model"), 
-#                        xlim=c(-95,-70), ylim=c(40,52),
-#                        at=seq(0,1, length.out=1000),
-#                        col.regions=colfun,
-#                        margin=F,
-#                        maxpixels=13000000)
-
-#print(current.plot)
-#dev.off()
 
 ##TRY TO PLOT PREDICT_TEST
 #calc.deviance(obs=envtest$pa, pred=predict_test, calc.mean = TRUE)
