@@ -172,7 +172,7 @@ current.plot<-levelplot(current.predict,
           at=seq(0,1, length.out=1000),
           col.regions=colfun,
           margin=F,
-          maxpixels=13000000) +
+          maxpixels=15000000) +
   layer(sp.polygons(glb))
 print(current.plot)
 dev.off()
